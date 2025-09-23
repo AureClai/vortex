@@ -5,7 +5,7 @@ package renderer
 import (
 	"syscall/js"
 
-	"github.com/AureClai/goflow/vdom"
+	"github.com/AureClai/vortex/vdom"
 )
 
 type Renderer struct {
@@ -81,7 +81,7 @@ func (r *Renderer) RequestFrame() {
 	if r.animationFrame.Truthy() {
 		js.Global().Call("cancelAnimationFrame", r.animationFrame)
 	}
-	
+
 	r.animationFrame = js.Global().Call("requestAnimationFrame", js.FuncOf(func(this js.Value, args []js.Value) interface{} {
 		// Frame callback - can be used for post-render operations
 		return nil

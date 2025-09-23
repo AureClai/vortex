@@ -5,7 +5,7 @@ package component
 import (
 	"syscall/js"
 
-	"github.com/AureClai/goflow/vdom"
+	"github.com/AureClai/vortex/vdom"
 )
 
 type Input struct {

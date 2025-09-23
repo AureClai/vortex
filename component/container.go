@@ -3,7 +3,7 @@
 package component
 
 import (
-	"github.com/AureClai/goflow/vdom"
+	"github.com/AureClai/vortex/vdom"
 )
 
 type Container struct {

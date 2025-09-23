@@ -7,8 +7,8 @@ import (
 	"syscall/js"
 	"time"
 
-	"github.com/AureClai/goflow/component"
-	"github.com/AureClai/goflow/vdom"
+	"github.com/AureClai/vortex/component"
+	"github.com/AureClai/vortex/vdom"
 )
 
 // AnimatedComponent wraps any component with animation capabilities

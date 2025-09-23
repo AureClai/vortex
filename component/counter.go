@@ -5,8 +5,8 @@ package component
 import (
 	"fmt"
 
-	"github.com/AureClai/goflow/renderer"
-	"github.com/AureClai/goflow/vdom"
+	"github.com/AureClai/vortex/renderer"
+	"github.com/AureClai/vortex/vdom"
 )
 
 type Counter struct {

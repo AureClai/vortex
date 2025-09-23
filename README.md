@@ -1,8 +1,8 @@
 <div align="center">
-  <img src="assets/logo-texte-v.png" alt="GoFlow Logo" width="200" margin="10">
+  <img src="assets/logo-texte-v.png" alt="Vortex Logo" width="200" margin="10">
 </div>
 
-# GoFlow
+# Vortex
 
 A modern front-end web framework for Go that compiles to WebAssembly, bringing the power and simplicity of Go to web development.
 
@@ -23,10 +23,10 @@ A modern front-end web framework for Go that compiles to WebAssembly, bringing t
 
 ### Installation
 
-Install the GoFlow CLI:
+Install the Vortex CLI:
 
 ```bash
-go install github.com/AureClai/goflow@latest
+go install github.com/AureClai/vortex@latest
 ```
 
 Make sure `$GOPATH/bin` is in your PATH:
@@ -39,15 +39,15 @@ export PATH=$PATH:$(go env GOPATH)/bin
 ### Create Your First Project
 
 ```bash
-# Create a new GoFlow project
-goflow init my-app
+# Create a new Vortex project
+vortex init my-app
 cd my-app
 
 # Build the WebAssembly module
-goflow build
+vortex build
 
 # Start the development server
-goflow dev
+vortex dev
 ```
 
 Open http://localhost:8080 in your browser to see your app!
@@ -62,8 +62,8 @@ Open http://localhost:8080 in your browser to see your app!
 package main
 
 import (
-    "github.com/AureClai/goflow/component"
-    "github.com/AureClai/goflow/renderer"
+    "github.com/AureClai/vortex/component"
+    "github.com/AureClai/vortex/renderer"
 )
 
 func main() {
@@ -73,7 +73,7 @@ func main() {
     // Create components
     app := component.NewContainer().SetClass("app")
 
-    title := component.NewHeading("Welcome to GoFlow!", 1)
+    title := component.NewHeading("Welcome to Vortex!", 1)
     button := component.NewButton("Click me!", func() {
         println("Button clicked!")
     })
@@ -144,12 +144,12 @@ list := component.NewList(items).
 
 ### Particle System & Animations
 
-GoFlow includes a powerful particle system and animation engine for creating stunning visual effects:
+Vortex includes a powerful particle system and animation engine for creating stunning visual effects:
 
 #### Particle Effects
 
 ```go
-import "github.com/AureClai/goflow/animation"
+import "github.com/AureClai/vortex/animation"
 
 // Create animation engine
 engine := animation.NewAnimationEngine(renderer)
@@ -192,7 +192,7 @@ bounce := animation.Bounce(engine, element, 20.0, 1000*time.Millisecond)
 #### Interactive Components
 
 ```go
-import "goflow-website/components/effects"
+import "vortex-website/components/effects"
 
 // GitHub morphing button (text transforms to logo on hover)
 githubButton := effects.NewGitHubMorphButton(
@@ -238,29 +238,29 @@ func (c *MyComponent) Render() *vdom.VNode {
 
 ## 🛠️ CLI Commands
 
-### `goflow init <project-name>`
+### `vortex init <project-name>`
 
-Creates a new GoFlow project with the basic structure:
+Creates a new Vortex project with the basic structure:
 
 - `main.go` - Entry point with sample component
 - `index.html` - HTML template
 - `go.mod` - Go module configuration
 - `README.md` - Project documentation
 
-### `goflow build`
+### `vortex build`
 
 Compiles the Go code to WebAssembly:
 
 - Generates `app.wasm`
 - Copies `wasm_exec.js` from Go installation
 
-### `goflow dev`
+### `vortex dev`
 
 Starts a local development server on port 8080 for testing your application.
 
 ## 🏗️ Architecture
 
-GoFlow follows a component-based architecture with three main layers:
+Vortex follows a component-based architecture with three main layers:
 
 ### Virtual DOM (`vdom` package)
 
@@ -282,7 +282,7 @@ GoFlow follows a component-based architecture with three main layers:
 
 ## 🎨 Styling
 
-GoFlow supports multiple styling approaches:
+Vortex supports multiple styling approaches:
 
 ### CSS Classes
 
@@ -326,7 +326,7 @@ func main() {
 
 ### Advanced Interactive Website
 
-Check out the `goflow-website` directory for a comprehensive example showcasing:
+Check out the `vortex-website` directory for a comprehensive example showcasing:
 
 - Particle bursts on mouse clicks
 - GitHub button with text-to-logo morphing animation
@@ -336,19 +336,19 @@ Check out the `goflow-website` directory for a comprehensive example showcasing:
 
 ## 🤝 Using as a Library
 
-Add GoFlow as a dependency to your existing Go project:
+Add Vortex as a dependency to your existing Go project:
 
 ```bash
-go get github.com/AureClai/goflow
+go get github.com/AureClai/vortex
 ```
 
 Then import the packages you need:
 
 ```go
 import (
-    "github.com/AureClai/goflow/component"
-    "github.com/AureClai/goflow/renderer"
-    "github.com/AureClai/goflow/vdom"
+    "github.com/AureClai/vortex/component"
+    "github.com/AureClai/vortex/renderer"
+    "github.com/AureClai/vortex/vdom"
 )
 ```
 
@@ -362,9 +362,9 @@ import (
 ### Building from Source
 
 ```bash
-git clone https://github.com/AureClai/goflow.git
-cd goflow
-go build -o goflow main.go
+git clone https://github.com/AureClai/vortex.git
+cd vortex
+go build -o vortex main.go
 ```
 
 ### Running Tests
@@ -436,7 +436,7 @@ go test ./...
 
 #### Developer Experience & Debugging
 
-- **GoFlow DevTools** - Browser extension for component inspection
+- **Vortex DevTools** - Browser extension for component inspection
 - **Performance Profiler** - Real-time animation and rendering metrics
 - **Memory Leak Detector** - WASM memory usage tracking
 - **Animation Timeline Debugger** - Visual timeline editor and inspector
@@ -474,10 +474,10 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## 📞 Support
 
-- 📖 Documentation: [GitHub Wiki](https://github.com/AureClai/goflow/wiki)
-- 🐛 Issues: [GitHub Issues](https://github.com/AureClai/goflow/issues)
-- 💬 Discussions: [GitHub Discussions](https://github.com/AureClai/goflow/discussions)
+- 📖 Documentation: [GitHub Wiki](https://github.com/AureClai/vortex/wiki)
+- 🐛 Issues: [GitHub Issues](https://github.com/AureClai/vortex/issues)
+- 💬 Discussions: [GitHub Discussions](https://github.com/AureClai/vortex/discussions)
 
 ---
 
-**Happy coding with GoFlow! 🚀**
+**Happy coding with Vortex! 🚀**
