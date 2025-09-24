@@ -375,8 +375,8 @@ func (s *Stagger) Render() *vdom.VNode {
 // Helper functions for creating common animated components
 
 // AnimatedButton creates an animated button with hover effects
-func AnimatedButton(text string, onClick func(), engine *AnimationEngine) vdom.Component {
-	button := component.NewButton(text, onClick).SetClass("animated-button")
+func AnimatedButton(text string, onClick func(event js.Value), engine *AnimationEngine) vdom.Component {
+	button := component.NewButton(text).SetClass("animated-button")
 	return NewScaleIn(button, engine).SetEasing(EaseOutBack)
 }
 

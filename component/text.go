@@ -7,15 +7,14 @@ import (
 )
 
 type Text struct {
-	Content string
-	Tag     string
-	Class   string
+	vdom.ComponentBase
 }
 
 func NewText(content string) *Text {
+	base := vdom.NewComponentBase("span")
+	base.AddChildren(&vdom.VNode{Type: vdom.VNodeText, Text: content})
 	return &Text{
-		Content: content,
-		Tag:     "span",
+		ComponentBase: base,
 	}
 }
 
@@ -35,36 +34,18 @@ func NewHeading(content string, level int) *Text {
 	case 6:
 		tag = "h6"
 	}
+	base := vdom.NewComponentBase(tag)
+	base.AddChildren(&vdom.VNode{Type: vdom.VNodeText, Text: content})
 
 	return &Text{
-		Content: content,
-		Tag:     tag,
+		ComponentBase: base,
 	}
 }
 
 func NewParagraph(content string) *Text {
+	base := vdom.NewComponentBase("p")
+	base.AddChildren(&vdom.VNode{Type: vdom.VNodeText, Text: content})
 	return &Text{
-		Content: content,
-		Tag:     "p",
-	}
-}
-
-func (t *Text) SetClass(class string) *Text {
-	t.Class = class
-	return t
-}
-
-func (t *Text) Render() *vdom.VNode {
-	props := make(map[string]interface{})
-
-	if t.Class != "" {
-		props["class"] = t.Class
-	}
-
-	return &vdom.VNode{
-		Type:     vdom.VNodeElement,
-		Tag:      t.Tag,
-		Props:    props,
-		Children: []*vdom.VNode{{Type: vdom.VNodeText, Text: t.Content}},
+		ComponentBase: base,
 	}
 }

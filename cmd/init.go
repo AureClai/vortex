@@ -73,14 +73,25 @@ func runInit(cmd *cobra.Command, args []string) {
 		fmt.Printf("❌ Error creating project directory: %v\n", err)
 		os.Exit(1)
 	}
+	fmt.Printf("✅ Created project directory: %s\n", projectName)
+
+	// Create the subdirectory
+	appDir := filepath.Join(projectName, "layout")
+	if err := os.Mkdir(appDir, 0755); err != nil {
+		fmt.Printf("❌ Error creating app directory: %v\n", err)
+		os.RemoveAll(projectName) // Cleanup
+		os.Exit(1)
+	}
+	fmt.Printf("✅ Created app directory: %s\n", appDir)
 
 	// Define files to create with their content
 	filesToCreate := map[string]string{
-		"main.go":    mainGoTemplate,
-		"index.html": indexHTMLTemplate,
-		"go.mod":     goModTemplate(projectName),
-		"README.md":  readmeTemplate(projectName),
-		".gitignore": gitignoreTemplate,
+		"main.go":       mainGoTemplate(projectName),
+		"index.html":    indexHTMLTemplate,
+		"go.mod":        goModTemplate(projectName),
+		"README.md":     readmeTemplate(projectName),
+		".gitignore":    gitignoreTemplate,
+		"layout/app.go": appGoTemplate,
 	}
 
 	for fileName, content := range filesToCreate {
@@ -101,6 +112,7 @@ func runInit(cmd *cobra.Command, args []string) {
 	fmt.Println("  2. Build the application: 'vortex build'")
 	fmt.Println("  3. Start the dev server: 'vortex dev'")
 	fmt.Println("  4. Open http://localhost:8080 in your browser.")
+	fmt.Println("  5. Edit the layout/app.go file to start building your application.")
 }
 
 // runBuild handles the logic for the 'vortex build' command.
@@ -181,15 +193,16 @@ func copyWasmExec() error {
 }
 
 // --- Templates ---
-
-const mainGoTemplate = `
+func mainGoTemplate(projectName string) string {
+	return fmt.Sprintf(`
 //go:build js && wasm
 
 package main
 
 import (
+	"%s/layout"
+
 	"fmt"
-	"github.com/AureClai/vortex/component"
 	"github.com/AureClai/vortex/renderer"
 )
 
@@ -200,7 +213,7 @@ func main() {
 	r := renderer.NewRenderer("app")
 
 	// Create the welcome page
-	app := createWelcomePage()
+	app := layout.NewApp(r)
 
 	// Render the app
 	r.Render(app.Render())
@@ -208,74 +221,263 @@ func main() {
 	// Keep the program running
 	<-make(chan bool)
 }
+	`, projectName)
+}
 
-func createWelcomePage() *component.Container {
-	// Main container
-	page := component.NewContainer().SetClass("welcome-page")
+const appGoTemplate = `
+//go:build js && wasm
+
+package layout
+
+import (
+	"fmt"
+	"syscall/js"
+
+	"github.com/AureClai/vortex/component"
+	"github.com/AureClai/vortex/renderer"
+	"github.com/AureClai/vortex/style"
+	"github.com/AureClai/vortex/vdom"
+)
+
+// --- Styles ---
+var AppStyle = style.New(
+	style.CustomStyle("max-width", "800px"),
+	style.Margin(style.MarginAll, "0 auto"),
+	style.Padding(style.PaddingAll, "2rem"),
+	style.CustomStyle("min-height", "100vh"),
+	style.Display(style.DisplayFlex),
+	style.FlexDirection(style.FlexDirectionColumn),
+	style.JustifyContent(style.JustifyContentCenter),
+	style.MediaQuery(
+		style.MediaQueryTypeMaxWidth,
+		"768px",
+		style.Padding(style.PaddingAll, "1rem"),
+	),
+)
+
+var headerStyle = style.New(
+	style.TextAlign(style.TextAlignCenter),
+	style.Margin(style.MarginAll, "0 auto"),
+	style.Padding(style.PaddingAll, "3rem"),
+	style.CustomStyle("min-height", "100vh"),
+	style.Display(style.DisplayFlex),
+	style.FlexDirection(style.FlexDirectionColumn),
+	style.JustifyContent(style.JustifyContentCenter),
+	style.MediaQuery(
+		style.MediaQueryTypeMaxWidth,
+		"768px",
+		style.Padding(style.PaddingAll, "2rem"),
+	),
+)
+
+// TODO: Animation will be defined with Vortex Animation Engine
+var logoStyle = style.New(
+	style.FontSize("4rem"),
+	style.Margin(style.MarginBottom, "1rem"),
+	style.Display(style.DisplayBlock),
+	//style.CustomStyle("animation", "rotate 10s linear infinite"),
+	style.MediaQuery(
+		style.MediaQueryTypeMaxWidth,
+		"768px",
+		style.FontSize("3rem"),
+	),
+)
+
+//TODO:
+// @keyframes rotate {
+// 	from { transform: rotate(0deg); }
+// 	to { transform: rotate(360deg); }
+// }
+
+var mainTitleStyle = style.New(
+	style.FontSize("3rem"),
+	style.FontWeight("700"),
+	style.Margin(style.MarginBottom, "1rem"),
+	style.Color("#ffffff"),
+	style.CustomStyle("text-shadow", "0 4px 20px rgba(0, 0, 0, 0.3)"),
+	style.MediaQuery(
+		style.MediaQueryTypeMaxWidth,
+		"768px",
+		style.FontSize("2.2rem"),
+	),
+)
+
+var subtitleStyle = style.New(
+	style.FontSize("1.2rem"),
+	style.Color("#ffffff"),
+	style.Margin(style.MarginBottom, "0"),
+)
+
+// TODO: Add a theme for all the colors used in the app to replace the "var(--shadow)"
+var featuresSectionStyle = style.New(
+	style.BackgroundColor("#ffffff"),
+	style.Padding(style.PaddingAll, "2.5rem"),
+	style.BorderRadius("20px"),
+	style.Margin(style.MarginBottom, "2rem"),
+	style.BoxShadow("0", "10px", "0", "40px", "#000000", false),
+)
+
+var sectionTitleStyle = style.New(
+	style.Margin(style.MarginBottom, "1.5rem"),
+	style.FontWeight("600"),
+	style.FontSize("2rem"),
+	style.TextAlign(style.TextAlignCenter),
+)
+
+var sectionLinksTitleStyle = style.New(
+	style.Margin(style.MarginBottom, "1.5rem"),
+	style.FontWeight("600"),
+	style.FontSize("1.5rem"),
+	style.TextAlign(style.TextAlignCenter),
+)
+
+var linksSectionStyle = style.New(
+	style.TextAlign(style.TextAlignCenter),
+)
+
+var buttonStyle = style.New(
+	style.Display(style.DisplayInlineBlock),
+	style.Padding(style.PaddingAll, "12px 24px"),
+	style.Margin(style.MarginAll, "0.5rem"),
+	style.Border("none"),
+	style.BorderRadius("12px"),
+	style.FontWeight("600"),
+	style.FontSize("1rem"),
+	style.Cursor(style.CursorPointer),
+	style.CustomStyle("transition", "all 0.3s ease"),
+	style.TextDecoration("none"),
+	style.FontFamily("inherit"),
+	style.OnHover(
+		style.CustomStyle("transform", "translateY(-2px)"),
+		style.CustomStyle("box-shadow", "0 8px 25px #000000"),
+	),
+	style.MediaQuery(
+		style.MediaQueryTypeMaxWidth,
+		"768px",
+		style.Display(style.DisplayBlock),
+		style.Margin(style.MarginAll, "0.5rem 0"),
+	),
+)
+
+var primaryButtonStyle = style.Extend(buttonStyle,
+	style.CustomStyle("background", "linear-gradient(45deg, #007bff, #00bfff)"),
+	style.Color("#ffffff"),
+	style.CustomStyle("box-shadow", "0 4px 15px rgba(33, 150, 243, 0.3)"),
+)
+
+var secondaryButtonStyle = style.Extend(buttonStyle,
+	style.BackgroundColor("#f0f0f0"),
+	style.Color("#000000"),
+	style.Border("2px solid #007bff"),
+)
+
+var accentButtonStyle = style.Extend(buttonStyle,
+	style.BackgroundColor("linear-gradient(45deg, #ff6b6b, #ff8a8a)"),
+	style.Color("#ffffff"),
+	style.CustomStyle("box-shadow", "0 4px 15px rgba(255, 107, 107, 0.3)"),
+)
+
+var footerStyle = style.New(
+	style.TextAlign(style.TextAlignCenter),
+	style.Padding(style.PaddingAll, "2rem"),
+	style.BackgroundColor("rgba(255, 255, 255, 0.1)"),
+	style.BorderRadius("20px"),
+	style.Border("1px solid rgba(255, 255, 255, 0.2)"),
+	style.CustomStyle("backdrop-filter", "blur(20px)"),
+)
+
+var footerTextStyle = style.New(
+	style.Color("rgba(255, 255, 255, 0.9)"),
+	style.FontSize("0.9rem"),
+	style.Margin(style.MarginAll, "0"),
+)
+
+var ErrorStyle = style.New(
+	style.Display(style.DisplayFlex),
+	style.FlexDirection(style.FlexDirectionColumn),
+	style.JustifyContent(style.JustifyContentCenter),
+	style.AlignItems(style.AlignItemsCenter),
+	style.Height("100vh"),
+	style.Color("white"),
+	style.TextAlign(style.TextAlignCenter),
+)
+
+type AppState struct {
+}
+
+type App struct {
+	vdom.StatefulComponentBase[AppState]
+}
+
+func NewApp(r *renderer.Renderer) *App {
+	app := &App{}
+
+	reRender := func() {
+		r.Render(app.Render())
+	}
+
+	initialState := AppState{}
+
+	app.StatefulComponentBase = vdom.NewStatefulComponent("div", initialState, reRender)
+
+	return app
+}
+
+func (a *App) Render() *vdom.VNode {
+	page := component.NewContainer()
+	page.Style(AppStyle)
 
 	// Header section
-	header := component.NewContainer().SetClass("header-section")
-	
-	// Logo and title
-	logo := component.NewText("🔄").SetClass("logo")
-	title := component.NewHeading("Welcome to Vortex!", 1).SetClass("main-title")
-	subtitle := component.NewParagraph("Your Go WebAssembly application is running successfully!").SetClass("subtitle")
+	header := component.NewContainer()
+	header.Style(headerStyle)
 
+	// Logo and title
+	logo := component.NewText("🔄")
+	logo.Style(logoStyle)
+	title := component.NewHeading("Welcome to Vortex!", 1)
+	title.Style(mainTitleStyle)
+	subtitle := component.NewParagraph("Your Go WebAssembly application is running successfully!")
+	subtitle.Style(subtitleStyle)
 	header.AddChild(logo)
 	header.AddChild(title)
 	header.AddChild(subtitle)
 
-	// Features section
-	features := component.NewContainer().SetClass("features-section")
-	featuresTitle := component.NewHeading("What's Next?", 2).SetClass("section-title")
-	features.AddChild(featuresTitle)
-
-	// Feature list
-	featureList := component.NewList([]string{
-		"Edit main.go to customize your application",
-		"Add more components from the Vortex library",
-		"Style your app with custom CSS",
-		"Build something amazing with Go and WebAssembly!",
-	}).SetClass("feature-list")
-	features.AddChild(featureList)
-
 	// Links section
-	links := component.NewContainer().SetClass("links-section")
-	linksTitle := component.NewHeading("Learn More", 3).SetClass("links-title")
-	
+	links := component.NewContainer()
+	links.Style(linksSectionStyle)
+	linksTitle := component.NewHeading("Learn More", 3)
+	linksTitle.Style(sectionLinksTitleStyle)
+	links.AddChild(linksTitle)
+
 	// Create interactive buttons
-	docsBtn := component.NewButton("📚 Documentation", func() {
+	docsBtn := component.NewButton("📚 Documentation")
+	docsBtn.Style(primaryButtonStyle)
+	docsBtn.On("click", func(e js.Value) {
 		fmt.Println("Opening Vortex documentation...")
 		// In a real app, this would open the docs
-	}).SetClass("btn btn-primary")
-
-	githubBtn := component.NewButton("⭐ GitHub", func() {
-		fmt.Println("Opening Vortex GitHub...")
-		// In a real app, this would open GitHub
-	}).SetClass("btn btn-secondary")
-
-	websiteBtn := component.NewButton("🌐 Vortex Website", func() {
-		fmt.Println("Opening Vortex website...")
-		// In a real app, this would open the website
-	}).SetClass("btn btn-accent")
-
-	links.AddChild(linksTitle)
+	})
+	githubBtn := component.NewButton("🐙 GitHub")
+	githubBtn.Style(secondaryButtonStyle)
+	githubBtn.On("click", func(e js.Value) {
+		fmt.Println("Opening Vortex GitHub repository...")
+		// In a real app, this would open the GitHub repository
+	})
 	links.AddChild(docsBtn)
 	links.AddChild(githubBtn)
-	links.AddChild(websiteBtn)
 
 	// Footer
-	footer := component.NewContainer().SetClass("footer-section")
-	footerText := component.NewParagraph("Built with ❤️ using Vortex - The Go WebAssembly Framework").SetClass("footer-text")
+	footer := component.NewContainer()
+	footer.Style(footerStyle)
+	footerText := component.NewParagraph("Built with ❤️ using Vortex - The Go WebAssembly Framework")
+	footerText.Style(footerTextStyle)
 	footer.AddChild(footerText)
 
 	// Assemble the page
 	page.AddChild(header)
-	page.AddChild(features)
 	page.AddChild(links)
 	page.AddChild(footer)
 
-	return page
+	return page.Render()
 }
 `
 
@@ -287,21 +489,8 @@ const indexHTMLTemplate = `
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Vortex App</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        /* Vortex Brand Colors */
-        :root {
-            --primary-blue: #2196F3;
-            --primary-orange: #FF9800;
-            --gradient-blue: #42A5F5;
-            --gradient-orange: #FFB74D;
-            --text-primary: #2C3E50;
-            --text-secondary: #546E7A;
-            --light-gray: #F5F7FA;
-            --white: #FFFFFF;
-            --shadow: rgba(0, 0, 0, 0.1);
-        }
-
-        * {
+	<style>
+ 		* {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
@@ -309,230 +498,15 @@ const indexHTMLTemplate = `
 
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-orange) 100%);
+            background: linear-gradient(135deg, #2196F3 0%, #FF9800 100%);
             min-height: 100vh;
-            color: var(--text-primary);
+            color: #2C3E50;
             line-height: 1.6;
         }
-
-        .loading {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            color: white;
-            text-align: center;
-        }
-
-        .loading-spinner {
-            width: 50px;
-            height: 50px;
-            border: 4px solid rgba(255, 255, 255, 0.3);
-            border-top: 4px solid white;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin-bottom: 20px;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        /* Welcome Page Styles */
-        .welcome-page {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 2rem;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-        }
-
-        .header-section {
-            text-align: center;
-            margin-bottom: 3rem;
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(20px);
-            padding: 3rem;
-            border-radius: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-
-        .logo {
-            font-size: 4rem;
-            margin-bottom: 1rem;
-            display: block;
-            animation: rotate 10s linear infinite;
-        }
-
-        @keyframes rotate {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
-
-        .main-title {
-            font-size: 3rem;
-            font-weight: 700;
-            margin-bottom: 1rem;
-            color: white;
-            text-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-        }
-
-        .subtitle {
-            font-size: 1.2rem;
-            color: rgba(255, 255, 255, 0.9);
-            margin-bottom: 0;
-        }
-
-        .features-section, .links-section {
-            background: white;
-            padding: 2.5rem;
-            border-radius: 20px;
-            margin-bottom: 2rem;
-            box-shadow: 0 10px 40px var(--shadow);
-        }
-
-        .section-title, .links-title {
-            color: var(--text-primary);
-            margin-bottom: 1.5rem;
-            font-weight: 600;
-        }
-
-        .section-title {
-            font-size: 2rem;
-            text-align: center;
-        }
-
-        .links-title {
-            font-size: 1.5rem;
-            text-align: center;
-        }
-
-        .feature-list {
-            list-style: none;
-            padding: 0;
-        }
-
-        .feature-list li {
-            padding: 1rem 0;
-            border-bottom: 1px solid var(--light-gray);
-            color: var(--text-secondary);
-            position: relative;
-            padding-left: 2rem;
-        }
-
-        .feature-list li:before {
-            content: '✨';
-            position: absolute;
-            left: 0;
-            top: 1rem;
-        }
-
-        .feature-list li:last-child {
-            border-bottom: none;
-        }
-
-        .links-section {
-            text-align: center;
-        }
-
-        .btn {
-            display: inline-block;
-            padding: 12px 24px;
-            margin: 0.5rem;
-            border: none;
-            border-radius: 12px;
-            font-weight: 600;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-decoration: none;
-            font-family: inherit;
-        }
-
-        .btn-primary {
-            background: linear-gradient(45deg, var(--primary-blue), var(--gradient-blue));
-            color: white;
-            box-shadow: 0 4px 15px rgba(33, 150, 243, 0.3);
-        }
-
-        .btn-secondary {
-            background: var(--light-gray);
-            color: var(--text-primary);
-            border: 2px solid var(--primary-blue);
-        }
-
-        .btn-accent {
-            background: linear-gradient(45deg, var(--primary-orange), var(--gradient-orange));
-            color: white;
-            box-shadow: 0 4px 15px rgba(255, 152, 0, 0.3);
-        }
-
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px var(--shadow);
-        }
-
-        .footer-section {
-            text-align: center;
-            padding: 2rem;
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(20px);
-            border-radius: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-
-        .footer-text {
-            color: rgba(255, 255, 255, 0.9);
-            font-size: 0.9rem;
-            margin: 0;
-        }
-
-        /* Responsive Design */
-        @media (max-width: 768px) {
-            .welcome-page {
-                padding: 1rem;
-            }
-
-            .header-section {
-                padding: 2rem;
-            }
-
-            .main-title {
-                font-size: 2.2rem;
-            }
-
-            .logo {
-                font-size: 3rem;
-            }
-
-            .btn {
-                display: block;
-                margin: 0.5rem 0;
-            }
-        }
-
-        .error {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            color: white;
-            text-align: center;
-        }
-    </style>
-</head>
+	</style>
+	</head>
 <body>
     <div id="app">
-        <div class="loading">
-            <div class="loading-spinner"></div>
-            <h2>Loading Vortex App...</h2>
-            <p>Initializing WebAssembly...</p>
-        </div>
     </div>
 
     <script src="wasm_exec.js"></script>
@@ -588,6 +562,8 @@ A Vortex WebAssembly application generated by the Vortex CLI.
 3. **Open your browser:**
    Visit http://localhost:8080 to see your app!
 
+4. **Edit the layout/app.go file to start building your application.**
+
 ## 📁 Project Structure
 
 - `+"`main.go`"+` - Your main application code
@@ -595,6 +571,7 @@ A Vortex WebAssembly application generated by the Vortex CLI.
 - `+"`go.mod`"+` - Go module configuration
 - `+"`app.wasm`"+` - Compiled WebAssembly binary (generated)
 - `+"`wasm_exec.js`"+` - Go WebAssembly runtime (generated)
+- `+"`layout/app.go`"+` - Your main application code
 
 ## 📚 Learn More
 
@@ -605,8 +582,8 @@ A Vortex WebAssembly application generated by the Vortex CLI.
 ## 🛠️ Next Steps
 
 1. Edit `+"`main.go`"+` to customize your application
-2. Add more Vortex components from the library
-3. Style your app with custom CSS
+2. Add more Vortex components from the library or create your own
+3. Style your app with the Vortex CSS-in-Go API
 4. Build something amazing with Go and WebAssembly!
 
 ---
