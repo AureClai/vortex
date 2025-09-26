@@ -35,6 +35,8 @@
 
 package style
 
+import "log"
+
 // Property is a simple alias for a CSS property
 // Ex: "color" -> "blue"
 type Property map[string]string
@@ -127,7 +129,9 @@ func (s *Style) Update(options ...StyleOption) {
 }
 
 // Function to apply a style which is not in the function already defined
+// Deprecated: Use the style options instead
 func CustomStyle(property string, value string) StyleOption {
+	log.Println("CustomStyle is deprecated. Use the style type safe options instead or develop your own style option implemention StyleOption, like this: func(s *Style) { s.Base[property] = value }")
 	return func(s *Style) {
 		s.Base[property] = value
 	}

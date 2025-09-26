@@ -9,6 +9,7 @@
 //   style := style.New(
 //       style.BackgroundColorGradient(style.GradientTypeLinear, style.GradientDirectionToTop, style.ColorValue("#000000"), style.ColorValue("#FFFFFF")),
 //   )
+
 //
 // For more information, see the style package documentation
 
@@ -30,7 +31,7 @@ type Gradient struct {
 }
 
 func (g Gradient) String() string {
-	return fmt.Sprintf("%s-%s(%s)", g.Type, g.Direction, strings.Join(CSSValuesToString(g.Colors...), ","))
+	return fmt.Sprintf("%s-gradient(%s , %s)", g.Type, g.Direction, strings.Join(CSSValuesToString(g.Colors...), ","))
 }
 
 func NewGradient(gType GradientType, gDirection GradientDirection, gColors ...ColorValue) Gradient {

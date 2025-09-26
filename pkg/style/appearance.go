@@ -18,6 +18,11 @@
 // | Background Repeat | background-repeat |
 // | Background Color | background-color |
 // | Opacity | opacity |
+// | Background Gradient | background |
+// | Background Image | background-image |
+// | Background Size | background-size |
+// | Background Position | background-position |
+// | Backdrop Filter | backdrop-filter |
 //
 // For more information, see the style package documentation
 
@@ -240,5 +245,33 @@ func BackgroundPositionFromTopLeft(offsetX, offsetY LengthValue) BackgroundPosit
 func BackgroundPosition(value BackgroundPositionValue) StyleOption {
 	return func(s *Style) {
 		s.Base["background-position"] = value.String()
+	}
+}
+
+type BackdropFilterValue string
+
+const (
+	BackdropFilterNone    BackdropFilterValue = "none"
+	BackdropFilterInherit BackdropFilterValue = "inherit"
+	BackdropFilterInitial BackdropFilterValue = "initial"
+	BackdropFilterRevert  BackdropFilterValue = "revert"
+	BackdropFilterUnset   BackdropFilterValue = "unset"
+)
+
+// Usage examples :
+//
+//	style.BackdropFilterBlur(style.Px(20))
+//	style.BackdropFilterNone()
+//	style.BackdropFilterInherit()
+//	style.BackdropFilterInitial()
+//	style.BackdropFilterRevert()
+//	style.BackdropFilterUnset()
+func BackdropFilterBlur(value LengthValue) BackdropFilterValue {
+	return BackdropFilterValue(fmt.Sprintf("blur(%s)", value.String()))
+}
+
+func BackdropFilter(value BackdropFilterValue) StyleOption {
+	return func(s *Style) {
+		s.Base["backdrop-filter"] = string(value)
 	}
 }
