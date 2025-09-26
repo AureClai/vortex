@@ -127,6 +127,22 @@ func HeightInitial() StyleOption              { return Height(Initial) }
 func HeightRevert() StyleOption               { return Height(Revert) }
 func HeightUnset() StyleOption                { return Height(Unset) }
 
+// Position based on the top, right, bottom, left
+type PositionDirection string
+
+const (
+	PositionTop    PositionDirection = "top"
+	PositionRight  PositionDirection = "right"
+	PositionBottom PositionDirection = "bottom"
+	PositionLeft   PositionDirection = "left"
+)
+
+func PositionSide(direction PositionDirection, value LengthValue) StyleOption {
+	return func(s *Style) {
+		s.Base[string(direction)] = value.String()
+	}
+}
+
 // margin
 type MarginDirection string
 

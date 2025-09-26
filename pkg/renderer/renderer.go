@@ -46,6 +46,7 @@ func (r *Renderer) Render(newVNode *vdom.VNode) {
 
 func logPatch(parent js.Value, currentVNode *vdom.VNode, newVNode *vdom.VNode) {
 	fmt.Printf("\n\n")
+	fmt.Printf("Patching DOM from %p to %p\n", currentVNode, newVNode)
 	fmt.Printf("Parent: %+v\n", parent.Get("tagName").String())
 	fmt.Printf("Current VNode: %+v ; pointer %p\n", currentVNode, currentVNode)
 	fmt.Printf("New VNode: %+v ; pointer %p\n", newVNode, newVNode)
