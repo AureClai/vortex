@@ -7,7 +7,7 @@ import (
 	"strings"
 	"syscall/js"
 
-	"github.com/AureClai/vortex/vdom"
+	"github.com/AureClai/vortex/pkg/vdom"
 )
 
 type Renderer struct {

@@ -3,7 +3,7 @@
 package component
 
 import (
-	"github.com/AureClai/vortex/vdom"
+	"github.com/AureClai/vortex/pkg/vdom"
 )
 
 type Text struct {

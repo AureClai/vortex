@@ -8,7 +8,7 @@ import (
 	"syscall/js"
 	"time"
 
-	"github.com/AureClai/vortex/renderer"
+	"github.com/AureClai/vortex/pkg/renderer"
 )
 
 // EasingFunc defines the signature for easing functions

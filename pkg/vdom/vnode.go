@@ -5,7 +5,7 @@ package vdom
 import (
 	"syscall/js"
 
-	"github.com/AureClai/vortex/style"
+	"github.com/AureClai/vortex/pkg/style"
 )
 
 type VNodeType int

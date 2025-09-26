@@ -7,8 +7,8 @@ import (
 	"syscall/js"
 	"time"
 
-	"github.com/AureClai/vortex/component"
-	"github.com/AureClai/vortex/vdom"
+	"github.com/AureClai/vortex/pkg/component"
+	"github.com/AureClai/vortex/pkg/vdom"
 )
 
 // AnimatedComponent wraps any component with animation capabilities
