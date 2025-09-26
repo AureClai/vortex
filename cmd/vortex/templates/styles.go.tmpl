@@ -1,0 +1,245 @@
+//go:build js && wasm
+
+// Package styles contains all the styling for the application
+// This demonstrates advanced Vortex styling patterns with precompilation
+package styles
+
+import (
+	"github.com/AureClai/vortex/pkg/style"
+)
+
+// =============================================================================
+// APPLICATION STYLES - All precompiled for maximum performance
+// =============================================================================
+
+// Layout Styles
+var (
+	AppContainerStyle = style.New(
+		style.WidthPercent(100),
+		style.HeightPercent(100), 
+		style.Margin(style.MarginAll, style.Auto),
+		style.Padding(style.PaddingAll, style.Rem(2)),
+		style.Display(style.DisplayFlex),
+		style.FlexDirection(style.FlexDirectionColumn),
+		style.AlignItems(style.AlignItemsCenter),
+		style.FontFamily("'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"),
+		// Responsive design
+		style.MediaQuery(style.MediaQueryTypeMaxWidth, "768px",
+			style.Padding(style.PaddingAll, style.Rem(1)),
+		),
+	)
+
+	HeaderStyle = style.New(
+		style.TextAlign(style.TextAlignCenter),
+		style.Padding(style.PaddingAll, style.Rem(3)),
+		style.Margin(style.MarginBottom, style.Rem(2)),
+		style.MediaQuery(style.MediaQueryTypeMaxWidth, "768px",
+			style.Padding(style.PaddingAll, style.Rem(2)),
+		),
+	)
+)
+
+// Typography Styles - Advanced typography system
+var (
+	LogoStyle = style.New(
+		style.FontSize(style.Rem(4)),
+		style.Margin(style.MarginBottom, style.Rem(1)),
+		style.Display(style.DisplayBlock),
+		// TODO: Will be replaced with Vortex Animation Engine
+		style.CustomStyle("animation", "rotate 10s linear infinite"),
+		style.MediaQuery(style.MediaQueryTypeMaxWidth, "768px",
+			style.FontSize(style.Rem(3)),
+		),
+	)
+
+	MainTitleStyle = style.New(
+		style.FontSize(style.Rem(3)),
+		style.FontWeight(style.FontWeight700),
+		style.Margin(style.MarginBottom, style.Rem(1)),
+		style.Color(style.ColorWhite),
+		// Advanced text shadow using new system
+		style.TextShadow(
+			style.TextShadowValue{
+				OffsetX:    style.Px(0),
+				OffsetY:    style.Px(4),
+				BlurRadius: style.Px(20),
+				Color:      style.RGBA(0, 0, 0, 0.3),
+			},
+		),
+		style.MediaQuery(style.MediaQueryTypeMaxWidth, "768px",
+			style.FontSize(style.Rem(2.2)),
+		),
+	)
+
+	SubtitleStyle = style.New(
+		style.FontSize(style.Rem(1.2)),
+		style.Color(style.ColorWhite),
+		style.Margin(style.MarginBottom, style.Rem(2)),
+		style.FontWeight(style.FontWeight400),
+		style.LineHeight(style.Em(1.6)),
+	)
+)
+
+// Component Styles - Advanced component patterns
+var (
+	FeaturesSectionStyle = style.New(
+		style.BackgroundColor(style.ColorWhite),
+		style.Padding(style.PaddingAll, style.Rem(2.5)),
+		style.BorderRadius(style.Px(20)),
+		style.Margin(style.MarginBottom, style.Rem(2)),
+		// Advanced multiple box shadows
+		style.BoxShadow(
+			style.BoxShadowValue{
+				OffsetX:      style.Px(0),
+				OffsetY:      style.Px(10),
+				BlurRadius:   style.Px(30),
+				SpreadRadius: style.Px(0),
+				Color:        style.RGBA(0, 0, 0, 0.1),
+				IsInset:      false,
+			},
+			style.BoxShadowValue{
+				OffsetX:      style.Px(0),
+				OffsetY:      style.Px(4),
+				BlurRadius:   style.Px(15),
+				SpreadRadius: style.Px(0),
+				Color:        style.RGBA(0, 0, 0, 0.05),
+				IsInset:      false,
+			},
+		),
+	)
+
+	FeaturesListStyle = style.New(
+		style.Display(style.DisplayFlex),
+		style.FlexDirection(style.FlexDirectionColumn),
+		style.Gap(style.NewGapValueFromLengthValue(style.Rem(0.8))),
+	)
+
+	FeatureItemStyle = style.New(
+		style.FontSize(style.Rem(1.1)),
+		style.Margin(style.MarginAll, style.Px(0)),
+		style.Padding(style.PaddingAll, style.Rem(0.5)),
+		style.BorderRadius(style.Px(8)),
+		style.BackgroundColor(style.RGBA(33, 150, 243, 0.05)),
+		style.Border(style.Px(1), style.BorderSolid, style.RGBA(33, 150, 243, 0.1)),
+	)
+
+	SectionTitleStyle = style.New(
+		style.FontSize(style.Rem(2)),
+		style.FontWeight(style.FontWeight600),
+		style.Margin(style.MarginBottom, style.Rem(1.5)),
+		style.TextAlign(style.TextAlignCenter),
+		style.Color(style.RGB(44, 62, 80)),
+	)
+)
+
+// Button Styles - Performance-optimized interactive elements
+var (
+	ButtonsContainerStyle = style.New(
+		style.Display(style.DisplayFlex),
+		style.FlexWrap(style.FlexWrapWrap),
+		style.JustifyContent(style.JustifyContentCenter),
+		style.Gap(style.NewGapValueFromLengthValue(style.Rem(1))),
+		style.Margin(style.MarginAll, style.Rem(2)),
+	)
+
+	// Base button style with advanced features
+	baseButtonStyle = style.New(
+		style.Display(style.DisplayInlineBlock),
+		style.Padding(style.PaddingY, style.Px(12)),
+		style.Padding(style.PaddingX, style.Px(24)),
+		style.BorderRadius(style.Px(12)),
+		style.FontWeight(style.FontWeight600),
+		style.FontSize(style.Rem(1)),
+		style.Cursor(style.CursorPointer),
+		style.TextDecoration(style.TextDecorationNone),
+		style.FontFamily("inherit"),
+		// Advanced transitions (will be replaced by Animation Engine)
+		style.CustomStyle("transition", "all 0.3s ease"),
+		// Advanced hover effects with multiple properties
+		style.OnHover(
+			style.CustomStyle("transform", "translateY(-2px)"),
+			style.CustomStyle("box-shadow", "0 8px 25px rgba(0, 0, 0, 0.15)"),
+		),
+		// Responsive design
+		style.MediaQuery(style.MediaQueryTypeMaxWidth, "768px",
+			style.Display(style.DisplayBlock),
+			style.WidthPercent(100),
+			style.Margin(style.MarginBottom, style.Rem(0.5)),
+		),
+	)
+
+	PrimaryButtonStyle = style.Extend(baseButtonStyle,
+		style.BackgroundGradient(
+			// Advanced gradient support
+			style.NewGradient(
+				style.GradientTypeLinear,
+				style.GradientDirectionToBottomRight,
+				style.RGB(33, 150, 243),  // Blue
+				style.RGB(33, 150, 243),  // Lighter blue
+			),
+		),
+		style.Color(style.ColorWhite),
+		style.BoxShadow(
+			style.BoxShadowValue{
+				OffsetX:      style.Px(0),
+				OffsetY:      style.Px(4),
+				BlurRadius:   style.Px(15),
+				SpreadRadius: style.Px(0),
+				Color:        style.RGBA(33, 150, 243, 0.3),
+				IsInset:      false,
+			},
+		),
+	)
+
+	SecondaryButtonStyle = style.Extend(baseButtonStyle,
+		style.BackgroundColor(style.RGB(248, 249, 250)),
+		style.Color(style.RGB(73, 80, 87)),
+		style.Border(style.Px(2), style.BorderSolid, style.RGB(33, 150, 243)),
+		style.OnHover(
+			style.BackgroundColor(style.RGB(33, 150, 243)),
+			style.Color(style.ColorWhite),
+		),
+	)
+
+	AccentButtonStyle = style.Extend(baseButtonStyle,
+		style.BackgroundGradient(
+			style.NewGradient(
+				style.GradientTypeLinear,
+				style.GradientDirectionToBottomRight,
+				style.RGB(255, 107, 107),  // Red
+				style.RGB(255, 138, 138),  // Lighter red
+			),
+		),
+		style.Color(style.ColorWhite),
+		style.BoxShadow(
+			style.BoxShadowValue{
+				OffsetX:      style.Px(0),
+				OffsetY:      style.Px(4),
+				BlurRadius:   style.Px(15),
+				SpreadRadius: style.Px(0),
+				Color:        style.RGBA(255, 107, 107, 0.3),
+				IsInset:      false,
+			},
+		),
+	)
+)
+
+// Footer Styles
+var (
+	FooterStyle = style.New(
+		style.TextAlign(style.TextAlignCenter),
+		style.Padding(style.PaddingAll, style.Rem(2)),
+		style.BackgroundColor(style.RGBA(255, 255, 255, 0.1)),
+		style.BorderRadius(style.Px(20)),
+		style.Border(style.Px(1), style.BorderSolid, style.RGBA(255, 255, 255, 0.2)),
+		style.CustomStyle("backdrop-filter", "blur(20px)"),
+		style.Margin(style.MarginTop, style.Rem(2)),
+	)
+
+	FooterTextStyle = style.New(
+		style.Color(style.RGBA(255, 255, 255, 0.9)),
+		style.FontSize(style.Rem(0.9)),
+		style.Margin(style.MarginAll, style.Px(0)),
+		style.FontWeight(style.FontWeight400),
+	)
+)

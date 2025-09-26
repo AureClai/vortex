@@ -1,0 +1,129 @@
+//go:build js && wasm
+
+package layout
+
+import (
+	"fmt"
+	"syscall/js"
+
+	"{{.ProjectName}}/styles"
+	"github.com/AureClai/vortex/pkg/component"
+	"github.com/AureClai/vortex/pkg/renderer" 
+	"github.com/AureClai/vortex/pkg/vdom"
+)
+
+type AppState struct {
+	// Add your application state here
+}
+
+type App struct {
+	vdom.StatefulComponentBase[AppState]
+}
+
+func NewApp(r *renderer.Renderer) *App {
+	app := &App{}
+
+	reRender := func() {
+		r.Render(app.Render())
+	}
+
+	initialState := AppState{}
+	app.StatefulComponentBase = vdom.NewStatefulComponent("div", initialState, reRender)
+
+	return app
+}
+
+func (a *App) Render() *vdom.VNode {
+	// ✅ Using precompiled styles for maximum performance
+	page := component.NewContainer()
+	page.Style(styles.AppContainerStyle) // Precompiled!
+
+	// Header section with precompiled styles
+	header := component.NewContainer()
+	header.Style(styles.HeaderStyle)
+
+	// Logo with optimized animation placeholder
+	logo := component.NewText("🌪️")
+	logo.Style(styles.LogoStyle)
+	
+	title := component.NewHeading("Welcome to Vortex!", 1)
+	title.Style(styles.MainTitleStyle)
+	
+	subtitle := component.NewParagraph("Your high-performance Go WebAssembly application is running!")
+	subtitle.Style(styles.SubtitleStyle)
+
+	header.AddChild(logo)
+	header.AddChild(title)
+	header.AddChild(subtitle)
+
+	// Features section showcasing precompilation
+	features := component.NewContainer()
+	features.Style(styles.FeaturesSectionStyle)
+	
+	featuresTitle := component.NewHeading("⚡ Advanced Features Enabled", 2)
+	featuresTitle.Style(styles.SectionTitleStyle)
+	features.AddChild(featuresTitle)
+	
+	// Feature list
+	featuresList := component.NewContainer()
+	featuresList.Style(styles.FeaturesListStyle)
+	
+	featureItems := []string{
+		"🚀 Style precompilation for maximum performance",
+		"🎨 Type-safe CSS-in-Go with validation",
+		"📱 Responsive design with media queries",
+		"✨ Advanced pseudo-classes (hover, focus, active)",
+		"🌈 Gradient and shadow support",
+		"📊 Built-in performance monitoring",
+	}
+	
+	for _, item := range featureItems {
+		featureItem := component.NewParagraph(item)
+		featureItem.Style(styles.FeatureItemStyle)
+		featuresList.AddChild(featureItem)
+	}
+	features.AddChild(featuresList)
+
+	// Interactive buttons with precompiled styles
+	buttonsContainer := component.NewContainer()
+	buttonsContainer.Style(styles.ButtonsContainerStyle)
+	
+	// Performance-optimized buttons
+	docsBtn := component.NewButton("📚 Documentation")
+	docsBtn.Style(styles.PrimaryButtonStyle) // Precompiled with hover effects!
+	docsBtn.On("click", func(e js.Value) {
+		fmt.Println("📚 Opening Vortex documentation...")
+	})
+	
+	githubBtn := component.NewButton("🐙 GitHub")
+	githubBtn.Style(styles.SecondaryButtonStyle)
+	githubBtn.On("click", func(e js.Value) {
+		fmt.Println("🐙 Opening Vortex GitHub repository...")
+	})
+	
+	perfBtn := component.NewButton("⚡ Performance Stats")
+	perfBtn.Style(styles.AccentButtonStyle)
+	perfBtn.On("click", func(e js.Value) {
+		fmt.Println("⚡ Checking performance stats...")
+		// In a real app, this would show detailed performance metrics
+	})
+
+	buttonsContainer.AddChild(docsBtn)
+	buttonsContainer.AddChild(githubBtn) 
+	buttonsContainer.AddChild(perfBtn)
+
+	// Footer
+	footer := component.NewContainer()
+	footer.Style(styles.FooterStyle)
+	footerText := component.NewParagraph("Built with ❤️ using Vortex - High-Performance Go WebAssembly Framework")
+	footerText.Style(styles.FooterTextStyle)
+	footer.AddChild(footerText)
+
+	// Assemble the page
+	page.AddChild(header)
+	page.AddChild(features)
+	page.AddChild(buttonsContainer)
+	page.AddChild(footer)
+
+	return page.Render()
+}

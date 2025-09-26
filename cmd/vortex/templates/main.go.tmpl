@@ -1,0 +1,34 @@
+//go:build js && wasm
+
+package main
+
+import (
+	"{{.ProjectName}}/layout"
+	"{{.ProjectName}}/styles"
+
+	"fmt"
+	"github.com/AureClai/vortex/pkg/renderer"
+	"github.com/AureClai/vortex/pkg/style"
+)
+
+func main() {
+	fmt.Println("🚀 Vortex app with advanced styling initialized!")
+	
+	// ✨ Initialize high-performance style precompilation
+	styles.InitializeStyles()
+	
+	// 📊 Show precompilation performance stats
+	style.PrecompilationStats()
+
+	// Create renderer
+	r := renderer.NewRenderer("app")
+
+	// Create the welcome page
+	app := layout.NewApp(r)
+
+	// Render the app
+	r.Render(app.Render())
+
+	// Keep the program running
+	<-make(chan bool)
+}

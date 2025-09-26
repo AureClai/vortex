@@ -1,0 +1,82 @@
+//go:build js && wasm
+
+// Package styles - common.go
+// This file demonstrates common style precompilation patterns
+package styles
+
+import (
+	"github.com/AureClai/vortex/pkg/style"
+)
+
+// InitializeStyles sets up style precompilation for the application
+// This should be called once at application startup for maximum performance
+func InitializeStyles() {
+	// Precompile all application styles for maximum runtime performance
+	style.Precompile(
+		// Layout styles
+		AppContainerStyle,
+		HeaderStyle,
+		
+		// Typography styles
+		LogoStyle,
+		MainTitleStyle,
+		SubtitleStyle,
+		
+		// Component styles
+		FeaturesSectionStyle,
+		FeaturesListStyle,
+		FeatureItemStyle,
+		SectionTitleStyle,
+		
+		// Button styles
+		ButtonsContainerStyle,
+		baseButtonStyle,
+		PrimaryButtonStyle,
+		SecondaryButtonStyle,
+		AccentButtonStyle,
+		
+		// Footer styles
+		FooterStyle,
+		FooterTextStyle,
+	)
+	
+	// Run precompilation - this generates and caches all CSS
+	style.RunPrecompilation()
+	
+	// Optional: Log performance stats
+	println("✅ Style precompilation completed successfully!")
+}
+
+// =============================================================================
+// COMMON STYLE UTILITIES - Ready-to-use patterns
+// =============================================================================
+
+// Quick access to common patterns (automatically precompiled)
+func FlexCenter() *style.Style       { return style.FlexCenter() }
+func FlexColumn() *style.Style       { return style.New(style.Display(style.DisplayFlex), style.FlexDirection(style.FlexDirectionColumn)) }
+func FullWidth() *style.Style        { return style.FullWidth() }
+func Hidden() *style.Style           { return style.Hidden() }
+
+// Responsive breakpoints (consistent across the app)
+const (
+	BreakpointMobile  = "768px"
+	BreakpointTablet  = "1024px"
+	BreakpointDesktop = "1200px"
+)
+
+// Common spacing values (consistent design system)
+func SpacingXS() style.LengthValue { return style.Rem(0.25) }
+func SpacingSM() style.LengthValue { return style.Rem(0.5) }
+func SpacingMD() style.LengthValue { return style.Rem(1) }
+func SpacingLG() style.LengthValue { return style.Rem(1.5) }
+func SpacingXL() style.LengthValue { return style.Rem(2) }
+
+// Common color palette (type-safe)
+func ColorPrimary() style.ColorValue   { return style.RGB(33, 150, 243) }
+func ColorSecondary() style.ColorValue { return style.RGB(108, 117, 125) }
+func ColorSuccess() style.ColorValue   { return style.RGB(40, 167, 69) }
+func ColorDanger() style.ColorValue    { return style.RGB(220, 53, 69) }
+func ColorWarning() style.ColorValue   { return style.RGB(255, 193, 7) }
+func ColorInfo() style.ColorValue      { return style.RGB(23, 162, 184) }
+
+// Performance tip: These functions return precompiled values for maximum speed!
