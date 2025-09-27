@@ -6,8 +6,16 @@
 //
 // Basic Usage:
 //
-//   style := style.New(
-//       style.Flex(style.Flex1),
+//   style := style.New().
+//       .Flex(style.Flex1).
+//       .FlexDirection(style.FlexDirectionRow).
+//       .FlexWrap(style.FlexWrapNowrap).
+//       .FlexGrow(style.Flex1).
+//       .FlexShrink(style.Flex1).
+//       .FlexBasis(style.Flex1).
+//       .AlignItems(style.AlignItemsStart).
+//       .JustifyContent(style.JustifyContentStart).
+//       .Gap(style.NewGapValueFromLengthValue(style.Px(10))).
 //   )
 //
 // For more information, see the style package documentation
@@ -65,10 +73,10 @@ func FlexInt(value int) FlexValue {
 //	style.Flex(style.FlexAuto)
 //	style.Flex(style.FlexNone)
 //	style.Flex(style.FlexInt(1))
-func Flex(value FlexValue) StyleOption {
-	return func(s *Style) {
-		s.Base["flex"] = string(value)
-	}
+func (s *Style) Flex(value FlexValue) *Style {
+	s.Base["flex"] = string(value)
+	return s
+
 }
 
 type FlexDirectionValue string
@@ -87,10 +95,9 @@ const (
 //	style.FlexDirection(style.FlexDirectionColumn)
 //	style.FlexDirection(style.FlexDirectionRowReverse)
 //	style.FlexDirection(style.FlexDirectionColumnReverse)
-func FlexDirection(value FlexDirectionValue) StyleOption {
-	return func(s *Style) {
-		s.Base["flex-direction"] = string(value)
-	}
+func (s *Style) FlexDirection(value FlexDirectionValue) *Style {
+	s.Base["flex-direction"] = string(value)
+	return s
 }
 
 type FlexWrapValue string
@@ -107,10 +114,10 @@ const (
 //	style.FlexWrap(style.FlexWrapNowrap)
 //	style.FlexWrap(style.FlexWrapWrap)
 //	style.FlexWrap(style.FlexWrapWrapReverse)
-func FlexWrap(value FlexWrapValue) StyleOption {
-	return func(s *Style) {
-		s.Base["flex-wrap"] = string(value)
-	}
+func (s *Style) FlexWrap(value FlexWrapValue) *Style {
+	s.Base["flex-wrap"] = string(value)
+	return s
+
 }
 
 // FlexGrow is a function that applies a flex grow to the element
@@ -119,10 +126,10 @@ func FlexWrap(value FlexWrapValue) StyleOption {
 //	style.FlexGrow(style.FlexInt(1))
 //	style.FlexGrow(style.FlexAuto)
 //	style.FlexGrow(style.FlexNone)
-func FlexGrow(value FlexValue) StyleOption {
-	return func(s *Style) {
-		s.Base["flex-grow"] = string(value)
-	}
+func (s *Style) FlexGrow(value FlexValue) *Style {
+	s.Base["flex-grow"] = string(value)
+	return s
+
 }
 
 // FlexShrink is a function that applies a flex shrink to the element
@@ -131,10 +138,10 @@ func FlexGrow(value FlexValue) StyleOption {
 //	style.FlexShrink(style.FlexInt(1))
 //	style.FlexShrink(style.FlexAuto)
 //	style.FlexShrink(style.FlexNone)
-func FlexShrink(value FlexValue) StyleOption {
-	return func(s *Style) {
-		s.Base["flex-shrink"] = string(value)
-	}
+func (s *Style) FlexShrink(value FlexValue) *Style {
+	s.Base["flex-shrink"] = string(value)
+	return s
+
 }
 
 // FlexBasis is a function that applies a flex basis to the element
@@ -143,16 +150,16 @@ func FlexShrink(value FlexValue) StyleOption {
 //	style.FlexBasis(style.FlexInt(1))
 //	style.FlexBasis(style.FlexAuto)
 //	style.FlexBasis(style.FlexNone)
-func FlexBasis(value CSSValue) StyleOption { // Accept both LengthValue and FlexValue
-	return func(s *Style) {
-		s.Base["flex-basis"] = value.String()
-	}
+func (s *Style) FlexBasis(value CSSValue) *Style { // Accept both LengthValue and FlexValue
+	s.Base["flex-basis"] = value.String()
+	return s
+
 }
 
 // Convenience functions
-func FlexBasisPx(value float64) StyleOption      { return FlexBasis(Px(value)) }
-func FlexBasisPercent(value float64) StyleOption { return FlexBasis(Percent(value)) }
-func FlexBasisAuto() StyleOption                 { return FlexBasis(FlexAuto) }
+func (s *Style) FlexBasisPx(value float64) *Style      { return s.FlexBasis(Px(value)) }
+func (s *Style) FlexBasisPercent(value float64) *Style { return s.FlexBasis(Percent(value)) }
+func (s *Style) FlexBasisAuto() *Style                 { return s.FlexBasis(FlexAuto) }
 
 type AlignItemsValue string
 
@@ -172,10 +179,10 @@ const (
 //	style.AlignItems(style.AlignItemsCenter)
 //	style.AlignItems(style.AlignItemsBaseline)
 //	style.AlignItems(style.AlignItemsStretch)
-func AlignItems(value AlignItemsValue) StyleOption {
-	return func(s *Style) {
-		s.Base["align-items"] = string(value)
-	}
+func (s *Style) AlignItems(value AlignItemsValue) *Style {
+	s.Base["align-items"] = string(value)
+	return s
+
 }
 
 type JustifyContentValue string
@@ -199,10 +206,10 @@ const (
 //	style.JustifyContent(style.JustifyContentCenter)
 //	style.JustifyContent(style.JustifyContentBaseline)
 //	style.JustifyContent(style.JustifyContentStretch)
-func JustifyContent(value JustifyContentValue) StyleOption {
-	return func(s *Style) {
-		s.Base["justify-content"] = string(value)
-	}
+func (s *Style) JustifyContent(value JustifyContentValue) *Style {
+	s.Base["justify-content"] = string(value)
+	return s
+
 }
 
 // Gap is a function that applies a gap to the element
@@ -225,8 +232,8 @@ func NewGapValueFromTwoLengthValues(value1, value2 LengthValue) GapValue {
 //
 //	style.Gap(style.NewGapValueFromLengthValue(style.Px(10)))
 //	style.Gap(style.NewGapValueFromTwoLengthValues(style.Px(10), style.Em(10)))
-func Gap(value GapValue) StyleOption {
-	return func(s *Style) {
-		s.Base["gap"] = string(value)
-	}
+func (s *Style) Gap(value GapValue) *Style {
+	s.Base["gap"] = string(value)
+	return s
+
 }

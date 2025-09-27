@@ -6,8 +6,9 @@
 //
 // Basic Usage:
 //
-//   style := style.New(
-//       style.OnHover(style.BackgroundColor("#f0f0f0")),
+//   style := style.New()
+//       .OnHover(style.BackgroundColor("#f0f0f0")).
+//       .OnActive(style.BackgroundColor("#f0f0f0"))
 //   )
 //
 // For more information, see the style package documentation
@@ -28,42 +29,32 @@ package style
 // --- Pseudo-classes
 
 // OnHiver applies the given styles for the pseudo :hover
-func OnHover(properties ...StyleOption) StyleOption {
-	return func(s *Style) {
-		// Create a temporary style object to collect the hover properties
-		hoverStyle := New(properties...)
-		s.Pseudos[":hover"] = hoverStyle.Base
-	}
+func (s *Style) OnHover(style *Style) *Style {
+	// Create a temporary style object to collect the hover properties
+	s.Pseudos[":hover"] = style.Base
+	return s
 }
 
 // OnActive applies the given styles for the pseudo :active
-func OnActive(properties ...StyleOption) StyleOption {
-	return func(s *Style) {
-		activeStyle := New(properties...)
-		s.Pseudos[":active"] = activeStyle.Base
-	}
+func (s *Style) OnActive(style *Style) *Style {
+	s.Pseudos[":active"] = style.Base
+	return s
 }
 
 // OnFocus applies the given styles for the pseudo :focus
-func OnFocus(properties ...StyleOption) StyleOption {
-	return func(s *Style) {
-		focusStyle := New(properties...)
-		s.Pseudos[":focus"] = focusStyle.Base
-	}
+func (s *Style) OnFocus(style *Style) *Style {
+	s.Pseudos[":focus"] = style.Base
+	return s
 }
 
 // OnFocusWithin applies the given styles for the pseudo :focus-within
-func OnFocusWithin(properties ...StyleOption) StyleOption {
-	return func(s *Style) {
-		focusWithinStyle := New(properties...)
-		s.Pseudos[":focus-within"] = focusWithinStyle.Base
-	}
+func (s *Style) OnFocusWithin(style *Style) *Style {
+	s.Pseudos[":focus-within"] = style.Base
+	return s
 }
 
 // OnFocusVisible applies the given styles for the pseudo :focus-visible
-func OnFocusVisible(properties ...StyleOption) StyleOption {
-	return func(s *Style) {
-		focusVisibleStyle := New(properties...)
-		s.Pseudos[":focus-visible"] = focusVisibleStyle.Base
-	}
+func (s *Style) OnFocusVisible(style *Style) *Style {
+	s.Pseudos[":focus-visible"] = style.Base
+	return s
 }

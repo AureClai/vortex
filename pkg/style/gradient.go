@@ -34,6 +34,10 @@ func (g Gradient) String() string {
 	return fmt.Sprintf("%s-gradient(%s , %s)", g.Type, g.Direction, strings.Join(CSSValuesToString(g.Colors...), ","))
 }
 
+func (g Gradient) Validate() error {
+	return ValidateCSS("background", g.String())
+}
+
 func NewGradient(gType GradientType, gDirection GradientDirection, gColors ...ColorValue) Gradient {
 	return Gradient{Type: gType, Direction: gDirection, Colors: gColors}
 }

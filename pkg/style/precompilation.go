@@ -25,38 +25,29 @@ type PrecompilationEngine struct {
 	totalStyles    int
 
 	// Configuration
-	autoPrecompileCommon bool
-	enableMetrics        bool
+	enableMetrics bool
 }
 
 // PrecompilationConfig configures the precompilation engine
 type PrecompilationConfig struct {
-	AutoPrecompileCommon bool // Automatically precompile common styles
-	EnableMetrics        bool // Track performance metrics
-	InitialCapacity      int  // Initial capacity for style storage
+	EnableMetrics   bool // Track performance metrics
+	InitialCapacity int  // Initial capacity for style storage
 }
 
 // NewPrecompilationEngine creates a new precompilation engine
 func NewPrecompilationEngine(config *PrecompilationConfig) *PrecompilationEngine {
 	if config == nil {
 		config = &PrecompilationConfig{
-			AutoPrecompileCommon: true,
-			EnableMetrics:        true,
-			InitialCapacity:      100,
+			EnableMetrics:   true,
+			InitialCapacity: 100,
 		}
 	}
 
 	engine := &PrecompilationEngine{
-		styles:               make([]*Style, 0, config.InitialCapacity),
-		styleMap:             make(map[string]*Style, config.InitialCapacity),
-		compiledStates:       make(map[*Style]bool, config.InitialCapacity),
-		autoPrecompileCommon: config.AutoPrecompileCommon,
-		enableMetrics:        config.EnableMetrics,
-	}
-
-	// Auto-precompile common styles if enabled
-	if config.AutoPrecompileCommon {
-		engine.precompileCommonStyles()
+		styles:         make([]*Style, 0, config.InitialCapacity),
+		styleMap:       make(map[string]*Style, config.InitialCapacity),
+		compiledStates: make(map[*Style]bool, config.InitialCapacity),
+		enableMetrics:  config.EnableMetrics,
 	}
 
 	return engine
@@ -160,39 +151,6 @@ func (e *PrecompilationEngine) PrecompileAndRegister(style *Style) *Style {
 	return style
 }
 
-// precompileCommonStyles automatically precompiles common style patterns
-func (e *PrecompilationEngine) precompileCommonStyles() {
-	// Get common styles (already precompiled in common.go)
-	commonStyles := []*Style{
-		FlexCenter(),
-		FullWidth(),
-		Hidden(),
-	}
-
-	// Add additional common patterns
-	additionalCommon := []*Style{
-		New(Display(DisplayFlex)),                                     // Basic flex
-		New(Display(DisplayFlex), FlexDirection(FlexDirectionColumn)), // Flex column
-		New(Display(DisplayBlock)),                                    // Block display
-		New(Position(PositionRelative)),                               // Relative positioning
-		New(Position(PositionAbsolute)),                               // Absolute positioning
-		New(TextAlign(TextAlignCenter)),                               // Text center
-		New(Width(Percent(50))),                                       // Half width
-		New(Height(Percent(100))),                                     // Full height
-	}
-
-	allCommon := append(commonStyles, additionalCommon...)
-
-	// Precompile all common styles
-	for _, style := range allCommon {
-		e.precompileStyle(style)
-	}
-
-	if e.enableMetrics {
-		log.Printf("Precompiled %d common styles", len(allCommon))
-	}
-}
-
 // GetMetrics returns performance metrics
 type PrecompilationMetrics struct {
 	TotalStyles         int
@@ -246,10 +204,10 @@ var globalPrecompiler *PrecompilationEngine
 // init initializes the global precompilation engine
 func init() {
 	globalPrecompiler = NewPrecompilationEngine(&PrecompilationConfig{
-		AutoPrecompileCommon: true,
-		EnableMetrics:        true,
-		InitialCapacity:      200,
+		EnableMetrics:   true,
+		InitialCapacity: 200,
 	})
+	initCommonStyles()
 }
 
 // Convenience functions for global precompiler
@@ -257,6 +215,12 @@ func init() {
 // Precompile adds styles to the global precompiler
 func Precompile(styles ...*Style) {
 	globalPrecompiler.AddStyles(styles...)
+}
+
+// Precompile adds a style to the global precompiler
+func (s *Style) Precompile() *Style {
+	globalPrecompiler.AddStyle(s)
+	return s
 }
 
 // RunPrecompilation runs precompilation on the global engine

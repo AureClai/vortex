@@ -6,8 +6,9 @@
 //
 // Basic Usage:
 //
-//   style := style.New(
-//       style.MediaQuery(style.MediaQueryTypeMinWidth, "600px", style.BackgroundColor("#f0f0f0")),
+//   style := style.New().
+//       .MediaQuery(style.MediaQueryTypeMinWidth, "600px", style.BackgroundColor("#f0f0f0")).
+//       .MediaQuery(style.MediaQueryTypeMaxWidth, "600px", style.BackgroundColor("#f0f0f0")).
 //   )
 //
 // For more information, see the style package documentation
@@ -63,21 +64,19 @@ const (
 )
 
 // MediaQuery applies the given styles for the given media query
-func MediaQuery(queryType MediaQueryType, queryValue string, properties ...StyleOption) StyleOption {
-	return func(s *Style) {
-		mediaStyle := New(properties...)
+func (s *Style) MediaQuery(queryType MediaQueryType, queryValue string, style *Style) *Style {
 
-		// Syntaxe CSS correcte, par ex: "@media (min-width: 600px)"
-		fullQuery := fmt.Sprintf("@media (%s: %s)", queryType, queryValue)
+	// Syntaxe CSS correcte, par ex: "@media (min-width: 600px)"
+	fullQuery := fmt.Sprintf("@media (%s: %s)", queryType, queryValue)
 
-		// On initialise la map si elle est nil, une bonne pratique
-		if s.MediaQueries[fullQuery] == nil {
-			s.MediaQueries[fullQuery] = make(Property)
-		}
-
-		// On fusionne les propriétés
-		for key, value := range mediaStyle.Base {
-			s.MediaQueries[fullQuery][key] = value
-		}
+	// On initialise la map si elle est nil, une bonne pratique
+	if s.MediaQueries[fullQuery] == nil {
+		s.MediaQueries[fullQuery] = make(Property)
 	}
+
+	// On fusionne les propriétés
+	for key, value := range style.Base {
+		s.MediaQueries[fullQuery][key] = value
+	}
+	return s
 }

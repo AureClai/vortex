@@ -56,16 +56,28 @@ type Style struct {
 type StyleOption func(*Style)
 
 // New creates a new style object applying the given options
-func New(options ...StyleOption) *Style {
+func New() *Style {
 	s := &Style{
 		Base:         make(Property),
 		Pseudos:      make(map[string]Property),
 		MediaQueries: make(map[string]Property),
 	}
-	for _, option := range options {
-		s.Update(option)
-	}
 	return s
+}
+
+// FromBase creates a new style object from the base properties of the given style
+func FromBase(s *Style) *Style {
+	copiedStyle := New()
+	for key, value := range s.Base {
+		copiedStyle.Base[key] = value
+	}
+	for pseudo, properties := range s.Pseudos {
+		copiedStyle.Pseudos[pseudo] = properties
+	}
+	for mediaQuery, properties := range s.MediaQueries {
+		copiedStyle.MediaQueries[mediaQuery] = properties
+	}
+	return copiedStyle
 }
 
 func (s *Style) List() []StyleOption {
