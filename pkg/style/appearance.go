@@ -3,12 +3,11 @@
 // Package style provides type-safe CSS styling for Vortex components.
 // This file contains the functions to apply the background and appearance to a style.
 // It is used to apply the background and appearance to a style.
+// API fluent like the other style functions
 //
 // Basic Usage:
 //
-//   style := style.New(
-//       style.BackgroundColor("#f0f0f0"),
-//   )
+//   style := style.New().BackgroundColor(style.RGB(0, 0, 0))
 //
 // For more information, see the style package documentation
 //
@@ -80,10 +79,9 @@ func BackgroundRepeat2Axes(valueX, valueY BackgroundRepeatValue) BackgroundRepea
 //	style.BackgroundRepeat(style.BackgroundRepeatSpace)
 //
 //	style.BackgroundRepeat2Axes(style.BackgroundRepeatSpace, style.BackgroundRepeatNoRepeat)
-func BackgroundRepeat(value BackgroundRepeatValue) StyleOption {
-	return func(s *Style) {
-		s.Base["background-repeat"] = string(value)
-	}
+func (s *Style) BackgroundRepeat(value BackgroundRepeatValue) *Style {
+	s.Base["background-repeat"] = string(value)
+	return s
 }
 
 // Usage examples :
@@ -91,11 +89,10 @@ func BackgroundRepeat(value BackgroundRepeatValue) StyleOption {
 //	style.BackgroundColor(style.RGB(0, 0, 0))
 //	style.BackgroundColor(style.Hex("#000000"))
 //	style.BackgroundColor(style.HSL(0, 0, 0))
-func BackgroundColor(value ColorValue) StyleOption {
+func (s *Style) BackgroundColor(value ColorValue) *Style {
 	validateCSSValue("background-color", value)
-	return func(s *Style) {
-		s.Base["background-color"] = value.String()
-	}
+	s.Base["background-color"] = value.String()
+	return s
 }
 
 // Usage examples :
@@ -103,10 +100,9 @@ func BackgroundColor(value ColorValue) StyleOption {
 //	style.Opacity(style.Opacity(0.5))
 //	style.Opacity(style.Opacity(1))
 //	style.Opacity(style.Opacity(0))
-func Opacity(value float64) StyleOption {
-	return func(s *Style) {
-		s.Base["opacity"] = fmt.Sprintf("%f", value)
-	}
+func (s *Style) Opacity(value float64) *Style {
+	s.Base["opacity"] = fmt.Sprintf("%f", value)
+	return s
 }
 
 // BackgroundGradient is a function that applies a gradient to the background
@@ -114,10 +110,9 @@ func Opacity(value float64) StyleOption {
 // Usage examples :
 //
 //	style.BackgroundGradient(style.NewGradient(style.GradientTypeLinear, style.GradientDirectionToTop, style.ColorValue("#000000"), style.ColorValue("#FFFFFF")))
-func BackgroundGradient(value Gradient) StyleOption {
-	return func(s *Style) {
-		s.Base["background"] = value.String()
-	}
+func (s *Style) BackgroundGradient(value Gradient) *Style {
+	s.Base["background"] = value.String()
+	return s
 }
 
 // ImageValue is a type that represents an image
@@ -148,11 +143,10 @@ func NewImageValueFromURL(url string) ImageValue {
 // TODO : Add the Image type and the way image are managed in the style package
 // From now use a placeholder type ImageValue
 // type ImageValue string
-func BackgroundImage(value ImageValue) StyleOption {
+func (s *Style) BackgroundImage(value ImageValue) *Style {
 	// No need to validate the image as we use a type safe value
-	return func(s *Style) {
-		s.Base["background-image"] = value.String()
-	}
+	s.Base["background-image"] = value.String()
+	return s
 }
 
 type BackgroundSizeValue string
@@ -185,10 +179,9 @@ func BackgroundSizePercent(value float64) BackgroundSizeValue {
 //	style.BackgroundSize(style.BackgroundSizeCover)
 //	style.BackgroundSize(style.BackgroundSizeContain)
 //	style.BackgroundSize(style.BackgroundSizeAuto)
-func BackgroundSize(value BackgroundSizeValue) StyleOption {
-	return func(s *Style) {
-		s.Base["background-size"] = value.String()
-	}
+func (s *Style) BackgroundSize(value BackgroundSizeValue) *Style {
+	s.Base["background-size"] = value.String()
+	return s
 }
 
 type SideKeyWordX string
@@ -242,10 +235,9 @@ func BackgroundPositionFromTopLeft(offsetX, offsetY LengthValue) BackgroundPosit
 	return BackgroundPositionValue(fmt.Sprintf("%s %s", offsetX.String(), offsetY.String()))
 }
 
-func BackgroundPosition(value BackgroundPositionValue) StyleOption {
-	return func(s *Style) {
-		s.Base["background-position"] = value.String()
-	}
+func (s *Style) BackgroundPosition(value BackgroundPositionValue) *Style {
+	s.Base["background-position"] = value.String()
+	return s
 }
 
 type BackdropFilterValue string
@@ -270,8 +262,7 @@ func BackdropFilterBlur(value LengthValue) BackdropFilterValue {
 	return BackdropFilterValue(fmt.Sprintf("blur(%s)", value.String()))
 }
 
-func BackdropFilter(value BackdropFilterValue) StyleOption {
-	return func(s *Style) {
-		s.Base["backdrop-filter"] = string(value)
-	}
+func (s *Style) BackdropFilter(value BackdropFilterValue) *Style {
+	s.Base["backdrop-filter"] = string(value)
+	return s
 }

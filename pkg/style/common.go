@@ -10,35 +10,37 @@
 // - Flex Center : FlexCenter : display: flex; justify-content: center; align-items: center;
 // - Full Width : FullWidth : width: 100%;
 // - Hidden : Hidden : display: none;
+// - Color Pink Neon Glow : ColorPinkNeonGlow : color: #FF69B4;
 
 package style
 
 var (
-	flexCenterStyle *Style
-	fullWidthStyle  *Style
-	hiddenStyle     *Style
+	flexCenterStyle        *Style
+	fullWidthStyle         *Style
+	hiddenStyle            *Style
+	colorPinkNeonGlowStyle *Style
 )
 
-func init() {
+func initCommonStyles() {
 	// Pre-generate the common styles
-	flexCenterStyle = New(
-		Display(DisplayFlex),
-		JustifyContent(JustifyContentCenter),
-		AlignItems(AlignItemsCenter),
-	)
-	fullWidthStyle = New(
-		Width(Percent(100)),
-	)
-	hiddenStyle = New(
-		Display(DisplayNone),
-	)
-
-	// CSS to cache
-	_ = flexCenterStyle.ToCSS()
-	_ = fullWidthStyle.ToCSS()
-	_ = hiddenStyle.ToCSS()
+	flexCenterStyle = New().
+		Display(DisplayFlex).
+		JustifyContent(JustifyContentCenter).
+		AlignItems(AlignItemsCenter).Precompile()
+	fullWidthStyle = New().
+		Width(Percent(100)).Precompile()
+	hiddenStyle = New().
+		Display(DisplayNone)
+	colorPinkNeonGlowStyle = New().
+		Color(HEX("#FFFFFF")).
+		TextShadow(
+			TextShadowValue{OffsetX: Px(0), OffsetY: Px(0), BlurRadius: Px(10), Color: HEX("#FF69B4")},
+			TextShadowValue{OffsetX: Px(0), OffsetY: Px(0), BlurRadius: Px(10), Color: HEX("#FF69B4")},
+		).Precompile()
 }
 
-func FlexCenter() *Style { return flexCenterStyle }
-func FullWidth() *Style  { return fullWidthStyle }
-func Hidden() *Style     { return hiddenStyle }
+// Quick access to common patterns (automatically precompiled)
+func FullWidth() *Style         { return fullWidthStyle }
+func Hidden() *Style            { return hiddenStyle }
+func ColorPinkNeonGlow() *Style { return colorPinkNeonGlowStyle }
+func FlexCenter() *Style        { return flexCenterStyle }

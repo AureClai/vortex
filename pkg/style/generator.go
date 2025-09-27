@@ -11,15 +11,10 @@
 //
 // For example, to apply a background color to a component, you can use the following code:
 //
-//   style := style.New(
-//       style.BackgroundColor("#f0f0f0"),
+//   style := style.New().
+//       .BackgroundColor("#f0f0f0").
 //   )
 //
-// For Custom style, use the CustomStyle function
-//
-//   style := style.New(
-//       style.CustomStyle("background-color", "#f0f0f0"),
-//   )
 //
 // For more information, see the style package documentation
 

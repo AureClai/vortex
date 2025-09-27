@@ -6,8 +6,11 @@
 //
 // Basic Usage:
 //
-//   style := style.New(
-//       style.Cursor(style.CursorPointer),
+//   style := style.New()
+//       .Cursor(style.CursorPointer).
+//       .ZIndex(1).
+//       .Overflow(style.OverflowAxisX, style.OverflowTypeScroll).
+//       .Position(style.PositionStatic)
 //   )
 //
 // For more information, see the style package documentation
@@ -58,20 +61,18 @@ func (c CursorValue) Validate() error {
 // Usage examples :
 //
 //	style.Cursor(style.CursorPointer)
-func Cursor(value CursorValue) StyleOption {
-	return func(s *Style) {
-		s.Base["cursor"] = value.String()
-	}
+func (s *Style) Cursor(value CursorValue) *Style {
+	s.Base["cursor"] = value.String()
+	return s
 }
 
 // ZIndex is a function that applies a z-index to the element
 // Usage examples :
 //
 //	style.ZIndex(style.ZIndex(1))
-func ZIndex(value int) StyleOption {
-	return func(s *Style) {
-		s.Base["z-index"] = fmt.Sprintf("%d", value)
-	}
+func (s *Style) ZIndex(value int) *Style {
+	s.Base["z-index"] = fmt.Sprintf("%d", value)
+	return s
 }
 
 // OverflowAxis is a type that represents an overflow axis
@@ -115,7 +116,7 @@ const (
 //	style.Overflow(style.OverflowAxisX, style.OverflowTypeScroll)
 //	style.Overflow(style.OverflowAxisY, style.OverflowTypeScroll)
 //	style.Overflow(style.OverflowAxisBoth, style.OverflowTypeHidden)
-func Overflow(axis OverflowAxis, value OverflowType) StyleOption {
+func (s *Style) Overflow(axis OverflowAxis, value OverflowType) *Style {
 	suffix := ""
 	if axis == OverflowAxisX {
 		suffix = "-x"
@@ -123,9 +124,8 @@ func Overflow(axis OverflowAxis, value OverflowType) StyleOption {
 	if axis == OverflowAxisY {
 		suffix = "-y"
 	}
-	return func(s *Style) {
-		s.Base["overflow"+suffix] = string(value)
-	}
+	s.Base["overflow"+suffix] = string(value)
+	return s
 }
 
 // PositionValue is a type that represents a position value
@@ -158,8 +158,7 @@ func (p PositionValue) Validate() error {
 // style.Position(style.PositionStatic)
 // style.Position(style.PositionRelative)
 // style.Position(style.PositionAbsolute)
-func Position(value PositionValue) StyleOption {
-	return func(s *Style) {
-		s.Base["position"] = value.String()
-	}
+func (s *Style) Position(value PositionValue) *Style {
+	s.Base["position"] = value.String()
+	return s
 }

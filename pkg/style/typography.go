@@ -6,15 +6,15 @@
 //
 // Basic Usage:
 //
-//   style := style.New(
-//       style.FontFamily("Arial"),
-//       style.FontSize(style.Px(16)),
-//       style.FontWeight(style.FontWeightBold),
-//       style.Color(style.RGB(255, 255, 255)),
-//       style.TextAlign(style.TextAlignCenter),
-//       style.LineHeight(style.Px(1.5)),
-//       style.LetterSpacing(style.Px(1)),
-//       style.TextDecoration(style.TextDecorationNone),
+//   style := style.New().
+//       .FontFamily("Arial").
+//       .FontSize(style.Px(16)).
+//       .FontWeight(style.FontWeightBold).
+//       .Color(style.RGB(255, 255, 255)).
+//       .TextAlign(style.TextAlignCenter).
+//       .LineHeight(style.Px(1.5)).
+//       .LetterSpacing(style.Px(1)).
+//       .TextDecoration(style.TextDecorationNone)
 //   )
 //
 // For more information, see the style package documentation
@@ -62,10 +62,10 @@ import (
 //	style.FontFamily("Arial")
 //	style.FontFamily("Helvetica")
 //	style.FontFamily("Times New Roman")
-func FontFamily(value string) StyleOption {
-	return func(s *Style) {
-		s.Base["font-family"] = value
-	}
+func (s *Style) FontFamily(value string) *Style {
+	s.Base["font-family"] = value
+	return s
+
 }
 
 // Usage examples :
@@ -73,11 +73,10 @@ func FontFamily(value string) StyleOption {
 //	style.FontSize(style.Px(16))
 //	style.FontSize(style.Cm(20))
 //	style.FontSize(style.Em(30))
-func FontSize(value LengthValue) StyleOption {
+func (s *Style) FontSize(value LengthValue) *Style {
 	validateCSSValue("font-size", value)
-	return func(s *Style) {
-		s.Base["font-size"] = value.String()
-	}
+	s.Base["font-size"] = value.String()
+	return s
 }
 
 // Usage examples :
@@ -85,11 +84,10 @@ func FontSize(value LengthValue) StyleOption {
 //	style.FontWeight(style.FontWeightNormal)
 //	style.FontWeight(style.FontWeightBold)
 //	style.FontWeight(style.FontWeight100)
-func FontWeight(value FontWeightValue) StyleOption {
+func (s *Style) FontWeight(value FontWeightValue) *Style {
 	validateCSSValue("font-weight", value)
-	return func(s *Style) {
-		s.Base["font-weight"] = value.String()
-	}
+	s.Base["font-weight"] = value.String()
+	return s
 }
 
 // Color is a function that applies a color to the text
@@ -98,21 +96,20 @@ func FontWeight(value FontWeightValue) StyleOption {
 //	style.Color(style.RGB(255, 255, 255))
 //	style.Color(style.Hex("#000000"))
 //	style.Color(style.HSL(0, 0, 0))
-func Color(value ColorValue) StyleOption {
+func (s *Style) Color(value ColorValue) *Style {
 	validateCSSValue("color", value)
-	return func(s *Style) {
-		s.Base["color"] = value.String()
-	}
+	s.Base["color"] = value.String()
+	return s
 }
 
 // ColorGradient is a function that applies a gradient to the color
 // Usage examples :
 //
 //	style.ColorGradient(style.NewGradient(style.GradientTypeLinear, style.GradientDirectionToTop, style.ColorValue("#000000"), style.ColorValue("#FFFFFF")))
-func ColorGradient(value Gradient) StyleOption {
-	return func(s *Style) {
-		s.Base["color"] = value.String()
-	}
+func (s *Style) ColorGradient(value Gradient) *Style {
+	validateCSSValue("color", value)
+	s.Base["color"] = value.String()
+	return s
 }
 
 type TextAlignValue string
@@ -128,10 +125,9 @@ const (
 //	style.TextAlign(style.TextAlignLeft)
 //	style.TextAlign(style.TextAlignCenter)
 //	style.TextAlign(style.TextAlignRight)
-func TextAlign(value TextAlignValue) StyleOption {
-	return func(s *Style) {
-		s.Base["text-align"] = string(value)
-	}
+func (s *Style) TextAlign(value TextAlignValue) *Style {
+	s.Base["text-align"] = string(value)
+	return s
 }
 
 // Usage examples :
@@ -139,11 +135,10 @@ func TextAlign(value TextAlignValue) StyleOption {
 //	style.LineHeight(style.Px(16))
 //	style.LineHeight(style.Cm(20))
 //	style.LineHeight(style.Em(30))
-func LineHeight(value LengthValue) StyleOption {
+func (s *Style) LineHeight(value LengthValue) *Style {
 	validateCSSValue("line-height", value)
-	return func(s *Style) {
-		s.Base["line-height"] = value.String()
-	}
+	s.Base["line-height"] = value.String()
+	return s
 }
 
 // Usage examples :
@@ -151,11 +146,10 @@ func LineHeight(value LengthValue) StyleOption {
 //	style.LetterSpacing(style.Px(16))
 //	style.LetterSpacing(style.Cm(20))
 //	style.LetterSpacing(style.Em(30))
-func LetterSpacing(value LengthValue) StyleOption {
+func (s *Style) LetterSpacing(value LengthValue) *Style {
 	validateCSSValue("letter-spacing", value)
-	return func(s *Style) {
-		s.Base["letter-spacing"] = value.String()
-	}
+	s.Base["letter-spacing"] = value.String()
+	return s
 }
 
 type TextDecorationValue string
@@ -173,10 +167,9 @@ const (
 //	style.TextDecoration(style.TextDecorationUnderline)
 //	style.TextDecoration(style.TextDecorationOverline)
 //	style.TextDecoration(style.TextDecorationLineThrough)
-func TextDecoration(value TextDecorationValue) StyleOption {
-	return func(s *Style) {
-		s.Base["text-decoration"] = string(value)
-	}
+func (s *Style) TextDecoration(value TextDecorationValue) *Style {
+	s.Base["text-decoration"] = string(value)
+	return s
 }
 
 type TextShadowValue struct {
@@ -202,7 +195,7 @@ func (t TextShadowValue) Validate() error {
 //	style.TextShadowValue{OffsetX: style.Px(20), OffsetY: style.Px(20), BlurRadius: style.Px(20), Color: style.RGB(0, 0, 0)},
 //
 // )
-func TextShadow(value ...TextShadowValue) StyleOption {
+func (s *Style) TextShadow(value ...TextShadowValue) *Style {
 	// Cast to CSSValue
 	cssValues := make([]CSSValue, len(value))
 	for i, v := range value {
@@ -210,14 +203,13 @@ func TextShadow(value ...TextShadowValue) StyleOption {
 	}
 	BatchValidate("text-shadow", cssValues...)
 
-	return func(s *Style) {
-		// Join the shadow styles with ,\n to be compatoible with multiple shadows
-		shadowStyles := make([]string, len(value))
-		for i, v := range value {
-			shadowStyles[i] = fmt.Sprintf("%s %s %s %s", v.OffsetX.String(), v.OffsetY.String(), v.BlurRadius.String(), v.Color.String())
-		}
-		s.Base["text-shadow"] = strings.Join(shadowStyles, ",\n")
+	// Join the shadow styles with ,\n to be compatoible with multiple shadows
+	shadowStyles := make([]string, len(value))
+	for i, v := range value {
+		shadowStyles[i] = fmt.Sprintf("%s %s %s %s", v.OffsetX.String(), v.OffsetY.String(), v.BlurRadius.String(), v.Color.String())
 	}
+	s.Base["text-shadow"] = strings.Join(shadowStyles, ",\n")
+	return s
 }
 
 // Usage examples :
@@ -225,11 +217,10 @@ func TextShadow(value ...TextShadowValue) StyleOption {
 //	style.WordSpacing(style.Px(10))
 //	style.WordSpacing(style.Cm(20))
 //	style.WordSpacing(style.Em(30))
-func WordSpacing(value LengthValue) StyleOption {
+func (s *Style) WordSpacing(value LengthValue) *Style {
 	validateCSSValue("word-spacing", value)
-	return func(s *Style) {
-		s.Base["word-spacing"] = value.String()
-	}
+	s.Base["word-spacing"] = value.String()
+	return s
 }
 
 type FontVariantValue string
@@ -270,15 +261,14 @@ const (
 //	style.FontVariant(style.FontVariantAllSmallCaps)
 //	style.FontVariant(style.FontVariantPetiteCaps)
 //	style.FontVariant(style.FontVariantAllPetiteCaps)
-func FontVariant(value ...FontVariantValue) StyleOption {
+func (s *Style) FontVariant(value ...FontVariantValue) *Style {
 	// Cast to string
 	stringValues := make([]string, len(value))
 	for i, v := range value {
 		stringValues[i] = string(v)
 	}
-	return func(s *Style) {
-		s.Base["font-variant"] = strings.Join(stringValues, " ")
-	}
+	s.Base["font-variant"] = strings.Join(stringValues, " ")
+	return s
 }
 
 type FontStretchValue string
@@ -311,11 +301,10 @@ func FontStretchPercent(value int) FontStretchValue {
 //	style.FontStretch(style.FontStretchNormal)
 //	style.FontStretch(style.FontStretchUltraCondensed)
 //	style.FontStretchPercent(20)
-func FontStretch(value FontStretchValue) StyleOption {
+func (s *Style) FontStretch(value FontStretchValue) *Style {
 	validateCSSValue("font-stretch", value)
-	return func(s *Style) {
-		s.Base["font-stretch"] = string(value)
-	}
+	s.Base["font-stretch"] = string(value)
+	return s
 }
 
 type FontStyleValue string
@@ -338,8 +327,7 @@ func (f FontStyleValue) Validate() error { return nil }
 //	style.FontStyle(style.FontStyleNormal)
 //	style.FontStyle(style.FontStyleItalic)
 //	style.FontStyle(style.FontStyleOblique)
-func FontStyle(value FontStyleValue) StyleOption {
-	return func(s *Style) {
-		s.Base["font-style"] = string(value)
-	}
+func (s *Style) FontStyle(value FontStyleValue) *Style {
+	s.Base["font-style"] = string(value)
+	return s
 }
