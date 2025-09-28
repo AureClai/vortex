@@ -57,7 +57,7 @@ func logPatch(parent js.Value, currentVNode *vdom.VNode, newVNode *vdom.VNode) {
 // Here remain most of the efficiciency for the virtual DOM
 // TODO: Implement a better algorithm for keyed lists
 func (r *Renderer) Patch(parent js.Value, currentVNode *vdom.VNode, newVNode *vdom.VNode) {
-	logPatch(parent, currentVNode, newVNode)
+	//logPatch(parent, currentVNode, newVNode)
 	// Cas 1: Création
 	if currentVNode == nil && newVNode != nil {
 		domNode := r.createDomNode(newVNode)

@@ -336,12 +336,20 @@ func (gb *GraphBuilder) lerpValue(from, to interface{}, t float32) interface{} {
 
 // applyPropertiesToDOM applies animated properties to the DOM element
 func (gb *GraphBuilder) applyPropertiesToDOM(properties map[string]interface{}) {
-	if gb.componentVNode.Element.IsUndefined() {
+	if gb.componentVNode == nil || gb.componentVNode.Element.IsUndefined() {
+		// Element not yet rendered to DOM, skip animation frame
 		return
 	}
 
 	element := gb.componentVNode.Element
+	if element.IsUndefined() {
+		return
+	}
+
 	style := element.Get("style")
+	if style.IsUndefined() {
+		return
+	}
 
 	// Batch transform properties into one update
 	var transformParts []string

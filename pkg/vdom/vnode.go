@@ -13,21 +13,25 @@ type VNodeType int
 const (
 	VNodeElement VNodeType = iota
 	VNodeText
+	VNodeComponent
 )
 
-// VNode represents a virtual node in the DOM
+// Core VNode
 type VNode struct {
-	Type          VNodeType
-	Tag           string                          // HTML tag name
-	Text          string                          // Text content
-	Props         map[string]interface{}          // Attributes and properties
-	Children      []*VNode                        // Child nodes
-	EventHandlers map[string]func(event js.Value) // Event handlers
-	Key           string                          // Key for list items
-	Element       js.Value                        // Stck la référence à l'élément DOM
-	AppliedStyle  *style.Style                    // the style to apply to this node
-}
+	Type VNodeType
+	Tag  string // HTML tag name
+	Text string // Text content
 
-type Component interface {
-	Render() *VNode
+	// DOM-related properties
+	Props         map[string]interface{}          // Attributes and properties
+	EventHandlers map[string]func(event js.Value) // Event handlers
+	Element       js.Value                        // Stck la référence à l'élément DOM
+
+	// VDOM-specific properties
+	Key          string       // Key for list items
+	Children     []*VNode     // Child nodes
+	AppliedStyle *style.Style // the style to apply to this node
+
+	// Component reference (for VNodeComponent type)
+	Component Component
 }

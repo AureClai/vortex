@@ -6,20 +6,51 @@ import (
 	"github.com/AureClai/vortex/pkg/vdom"
 )
 
-type Button struct {
-	vdom.ComponentBase // Integration of the ComponentBase
+// =============================================================================
+// BUTTON COMPONENT
+// =============================================================================
+
+type ButtonType string
+
+const (
+	ButtonTypeButton ButtonType = "button"
+	ButtonTypeSubmit ButtonType = "submit"
+	ButtonTypeReset  ButtonType = "reset"
+)
+
+type ButtonComponent struct {
+	*vdom.FunctionalComponent
+	text       string
+	buttonType ButtonType
 }
 
-func NewButton(text string) *Button {
-	// 1. Create the base with the tag "button"
-	base := vdom.NewComponentBase("button")
-
-	// 2. Set the text
-	textNode := &vdom.VNode{Type: vdom.VNodeText, Text: text}
-	base.AddChildren(textNode)
-
-	// 3. Return the button
-	return &Button{
-		ComponentBase: base,
+func Button(text string) *ButtonComponent {
+	comp := &ButtonComponent{
+		text:       text,
+		buttonType: ButtonTypeButton,
 	}
+
+	comp.FunctionalComponent = vdom.NewFunctionalComponent(func() *vdom.VNode {
+		return &vdom.VNode{
+			Type: vdom.VNodeElement,
+			Tag:  "button",
+			Children: []*vdom.VNode{
+				{
+					Type: vdom.VNodeText,
+					Text: comp.text,
+				},
+			},
+			Props: map[string]interface{}{
+				"type": string(comp.buttonType),
+			},
+		}
+	})
+
+	return comp
+}
+
+func (b *ButtonComponent) Type(buttonType ButtonType) *ButtonComponent {
+	b.buttonType = buttonType
+	b.OnUpdate() // Trigger re-render
+	return b
 }

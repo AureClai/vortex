@@ -2,38 +2,63 @@
 
 package vdom
 
-// StatefulComponent is a base struct for the components that need to manage their own state
-// It uses the generic type T to store the state and it is compatible with any State Struct
-type StatefulComponentBase[T any] struct {
-	ComponentBase
-	state    T
-	reRender func() // the function to re-render the component
+// StatefulComponent interface extends Component with state management
+type StatefulComponent[T any] interface {
+	Component
+
+	// State management
+	GetState() T
+	SetState(state T)
+	UpdateState(updater func(state T) T)
+
+	// State Lifecycle
+	OnStateChange(callback func(state T))
 }
 
-// NewStatefulComponent creates a new stateful component
-func NewStatefulComponent[T any](tag string, initialState T, reRender func()) StatefulComponentBase[T] {
-	return StatefulComponentBase[T]{
-		ComponentBase: NewComponentBase(tag),
+// StatefulComponentBase implementation
+type StatefulComponentBase[T any] struct {
+	*ComponentBase
+	state T
+
+	// Callbacks
+	onStateChange func(oldState T, newState T)
+	onRender      func() *VNode
+}
+
+func NewStatefulComponent[T any](tag string, initialState T) *StatefulComponentBase[T] {
+	base := NewComponent(tag)
+
+	return &StatefulComponentBase[T]{
+		ComponentBase: base,
 		state:         initialState,
-		reRender:      reRender,
+		onStateChange: func(oldState T, newState T) {}, // Default no-op
 	}
 }
 
-// State return the state of the component
-func (c *StatefulComponentBase[T]) State() T {
+// State management methods
+func (c *StatefulComponentBase[T]) GetState() T {
 	return c.state
 }
 
-// SetState sets the state of the component
 func (c *StatefulComponentBase[T]) SetState(state T) {
+	oldState := c.state
 	c.state = state
-	c.reRender()
+	c.onStateChange(oldState, state)
+	c.OnUpdate() // Trigger re-render
 }
 
-// UpdateState is an easy way to update the state of the component
-// It takes the "mutator" that receive the current state and return the new state
-func (c *StatefulComponentBase[T]) UpdateState(mutator func(currentState T) T) {
-	currentState := c.State()
-	newState := mutator(currentState)
+func (c *StatefulComponentBase[T]) UpdateState(mutator func(T) T) {
+	newState := mutator(c.state)
 	c.SetState(newState)
+}
+
+func (c *StatefulComponentBase[T]) OnStateChange(oldState T, newState T) {
+	if c.onStateChange != nil {
+		c.onStateChange(oldState, newState)
+	}
+}
+
+// Allow custom change callbacks
+func (c *StatefulComponentBase[T]) SetOnStateChange(callback func(T, T)) {
+	c.onStateChange = callback
 }

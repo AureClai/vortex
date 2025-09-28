@@ -28,8 +28,10 @@
 package style
 
 import (
+	"errors"
 	"fmt"
 	"log"
+	"math"
 	"regexp"
 	"strconv"
 	"strings"
@@ -189,6 +191,15 @@ func Percent(value float64) LengthValue { return LengthValue{Value: value, Unit:
 
 // ===== COLOR VALUES =====
 
+type RGBAColor struct {
+	R, G, B int
+	A       float64
+}
+
+func (c RGBAColor) ToColorValue() ColorValue {
+	return ColorValue{Value: fmt.Sprintf("rgba(%d, %d, %d, %0.2f)", c.R, c.G, c.B, c.A)}
+}
+
 type ColorValue struct {
 	Value string
 }
@@ -202,22 +213,169 @@ func (c ColorValue) Validate() error {
 }
 
 // Color Constructor functions
+// RGB with R, G, B in range 0-255
 func RGB(r, g, b int) ColorValue {
+	if r < 0 || r > 255 || g < 0 || g > 255 || b < 0 || b > 255 {
+		fmt.Printf("warning : RGB color %d, %d, %d is not valid, returning black color\n", r, g, b)
+		return ColorValue{Value: "#000000"}
+	}
 	return ColorValue{Value: fmt.Sprintf("rgb(%d, %d, %d)", r, g, b)}
 }
+
+// RGBA with R, G, B in range 0-255, 0-1
 func RGBA(r, g, b int, a float64) ColorValue {
+	if r < 0 || r > 255 || g < 0 || g > 255 || b < 0 || b > 255 || a < 0 || a > 1 {
+		fmt.Printf("warning : RGBA color %d, %d, %d, %0.2f is not valid, returning black color\n", r, g, b, a)
+		return ColorValue{Value: "#000000"}
+	}
 	return ColorValue{Value: fmt.Sprintf("rgba(%d, %d, %d, %0.2f)", r, g, b, a)}
 }
+
+func RGBAInterpolation(RGBAIn, RGBAOut RGBAColor, t float64) RGBAColor {
+	r := int(math.Round(float64(RGBAIn.R) + (float64(RGBAOut.R)-float64(RGBAIn.R))*t))
+	g := int(math.Round(float64(RGBAIn.G) + (float64(RGBAOut.G)-float64(RGBAIn.G))*t))
+	b := int(math.Round(float64(RGBAIn.B) + (float64(RGBAOut.B)-float64(RGBAIn.B))*t))
+	a := float64(RGBAIn.A) + (float64(RGBAOut.A)-float64(RGBAIn.A))*t
+	return RGBAColor{R: r, G: g, B: b, A: a}
+}
+
+// HSL with H, S, L in range 0-360, 0-100, 0-100
 func HSL(h, s, l int) ColorValue {
+	if h < 0 || h > 360 || s < 0 || s > 100 || l < 0 || l > 100 {
+		fmt.Printf("warning : HSL color %d, %d, %d is not valid, returning black color\n", h, s, l)
+		return ColorValue{Value: "#000000"}
+	}
 	return ColorValue{Value: fmt.Sprintf("hsl(%d, %d, %d)", h, s, l)}
 }
 
+// Validation if HEX parse well to RGBA
 func HEX(color string) ColorValue {
 	// Ensure # prefix
 	if !strings.HasPrefix(color, "#") {
 		color = "#" + color
+		fmt.Printf("warning : HEX color without # prefix, adding # prefix : %s\n", color)
+	}
+	if _, err := ParseColor(color); err != nil {
+		fmt.Printf("warning : HEX color %s is not valid, returning black color\n", color)
+		return ColorValue{Value: "#000000"}
 	}
 	return ColorValue{Value: color}
+}
+
+func (c *ColorValue) Parse() (RGBAColor, error) {
+	if err := validateColorString(c.Value); err != nil {
+		return RGBAColor{}, err
+	}
+	if strings.HasPrefix(c.Value, "rgb(") {
+		values := strings.Split(strings.TrimSuffix(strings.TrimPrefix(c.Value, "rgb("), ")"), ",")
+		if len(values) != 3 {
+			return RGBAColor{}, errors.New("invalid RGB color")
+		}
+		r, err := strconv.Atoi(values[0])
+		g, err := strconv.Atoi(values[1])
+		b, err := strconv.Atoi(values[2])
+		if err != nil {
+			return RGBAColor{}, err
+		}
+		return RGBAColor{R: r, G: g, B: b, A: 1}, nil
+	} else if strings.HasPrefix(c.Value, "rgba(") {
+		values := strings.Split(strings.TrimSuffix(strings.TrimPrefix(c.Value, "rgba("), ")"), ",")
+		if len(values) != 4 {
+			return RGBAColor{}, errors.New("invalid RGBA color")
+		}
+		r, err := strconv.Atoi(values[0])
+		g, err := strconv.Atoi(values[1])
+		b, err := strconv.Atoi(values[2])
+		a, err := strconv.ParseFloat(values[3], 64)
+		if err != nil {
+			return RGBAColor{}, err
+		}
+		return RGBAColor{R: r, G: g, B: b, A: a}, nil
+	} else if strings.HasPrefix(c.Value, "hsl(") {
+		values := strings.Split(strings.TrimSuffix(strings.TrimPrefix(c.Value, "hsl("), ")"), ",")
+		if len(values) != 3 {
+			return RGBAColor{}, errors.New("invalid HSL color")
+		}
+		// Convert HSL to RGB
+		h, err := strconv.Atoi(values[0])
+		s, err := strconv.Atoi(values[1])
+		l, err := strconv.Atoi(values[2])
+		if err != nil {
+			return RGBAColor{}, errors.New(fmt.Sprintf("At least a value of H, S or L is badly encoded in %s", c.Value))
+		}
+		r, g, b := hslToRgb(h, s, l)
+		return RGBAColor{R: r, G: g, B: b, A: 1}, nil
+	} else if strings.HasPrefix(c.Value, "#") {
+		r, err := strconv.ParseInt(c.Value[1:3], 16, 64)
+		g, err := strconv.ParseInt(c.Value[3:5], 16, 64)
+		b, err := strconv.ParseInt(c.Value[5:7], 16, 64)
+		if err != nil {
+			return RGBAColor{}, errors.New(fmt.Sprintf("At least a value of R, G or B is badly encoded in %s", c.Value))
+		}
+		return RGBAColor{R: int(r), G: int(g), B: int(b), A: 1}, nil
+	} else {
+		return RGBAColor{}, errors.New("invalid color value")
+	}
+}
+
+func hslToRgb(h, s, l int) (int, int, int) {
+	// Convert saturation and lightness to float64 in the range [0, 1]
+	sFloat := float64(s) / 100.0
+	lFloat := float64(l) / 100.0
+
+	// If saturation is 0, the color is a shade of gray
+	if sFloat == 0 {
+		// R, G, and B are all equal to Lightness
+		gray := int(math.Round(lFloat * 255))
+		return gray, gray, gray
+	}
+
+	// Standard HSL to RGB conversion formulas
+	// C is Chroma, a measure of color intensity
+	chroma := (1 - math.Abs(2*lFloat-1)) * sFloat
+	// X is an intermediate value used in the calculation
+	x := chroma * (1 - math.Abs(math.Mod(float64(h)/60.0, 2)-1))
+	// m is added to each component to match the correct lightness
+	m := lFloat - chroma/2
+
+	var rPrime, gPrime, bPrime float64
+
+	switch {
+	case h >= 0 && h < 60:
+		rPrime, gPrime, bPrime = chroma, x, 0
+	case h >= 60 && h < 120:
+		rPrime, gPrime, bPrime = x, chroma, 0
+	case h >= 120 && h < 180:
+		rPrime, gPrime, bPrime = 0, chroma, x
+	case h >= 180 && h < 240:
+		rPrime, gPrime, bPrime = 0, x, chroma
+	case h >= 240 && h < 300:
+		rPrime, gPrime, bPrime = x, 0, chroma
+	case h >= 300 && h < 360:
+		rPrime, gPrime, bPrime = chroma, 0, x
+	}
+
+	// Add m to each component and scale from [0, 1] to [0, 255]
+	r := int(math.Round((rPrime + m) * 255))
+	g := int(math.Round((gPrime + m) * 255))
+	b := int(math.Round((bPrime + m) * 255))
+
+	return r, g, b
+}
+
+func ColorValueInterpolation(colorIn, colorOut ColorValue, t float64) (ColorValue, error) {
+	rgbaIn, err := colorIn.Parse()
+	if err != nil {
+		return ColorValue{}, fmt.Errorf("error parsing colorIn %s : %w", colorIn.Value, err)
+	}
+	rgbaOut, err := colorOut.Parse()
+	if err != nil {
+		return ColorValue{}, fmt.Errorf("error parsing colorOut %s : %w", colorOut.Value, err)
+	}
+
+	rgbaInterpolated := RGBAInterpolation(rgbaIn, rgbaOut, t)
+
+	return rgbaInterpolated.ToColorValue(), nil
 }
 
 // CSS Color Keywords
