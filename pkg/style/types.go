@@ -96,6 +96,10 @@ func CSSValuesToString[T CSSValue](values ...T) []string {
 	return valuesStrings
 }
 
+func CSSValuesJoin[T CSSValue](separator string, values ...T) string {
+	return strings.Join(CSSValuesToString(values...), separator)
+}
+
 // ===== KEYWORD VALUES =====
 type KeywordValue struct {
 	value string
@@ -439,9 +443,10 @@ var (
 )
 
 func validateColorString(color string) error {
-	// Hex colors (#fff, #ffffff)
-	hexPattern := regexp.MustCompile(`^#[0-9a-fA-F]{3}([0-9a-fA-F]{3})?$`)
-	if hexPattern.MatchString(color) {
+	// Hex colors (#fff, #ffffff, #fff000, #fff0001c)
+	hexPattern24bitsOr12bits := regexp.MustCompile(`^#[0-9a-fA-F]{3}([0-9a-fA-F]{3})?$`)
+	hexPattern32bits := regexp.MustCompile(`^#[0-9a-fA-F]{4}([0-9a-fA-F]{4})?$`)
+	if hexPattern24bitsOr12bits.MatchString(color) || hexPattern32bits.MatchString(color) {
 		return nil
 	}
 

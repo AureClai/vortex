@@ -83,6 +83,22 @@ func (s *Style) Width(value CSSValue) *Style {
 	return s
 }
 
+func (s *Style) MinWidth(value CSSValue) *Style {
+	if err := value.Validate(); err != nil {
+		log.Printf("CSS validation warning: %v", err)
+	}
+	s.Base["min-width"] = value.String()
+	return s
+}
+
+func (s *Style) MaxWidth(value CSSValue) *Style {
+	if err := value.Validate(); err != nil {
+		log.Printf("CSS validation warning: %v", err)
+	}
+	s.Base["max-width"] = value.String()
+	return s
+}
+
 // Typed Width
 func (s *Style) WidthPx(value float64) *Style      { return s.Width(Px(value)) }
 func (s *Style) WidthEm(value float64) *Style      { return s.Width(Em(value)) }
@@ -112,6 +128,22 @@ func (s *Style) Height(value CSSValue) *Style {
 	s.Base["height"] = value.String()
 	return s
 
+}
+
+func (s *Style) MinHeight(value CSSValue) *Style {
+	if err := value.Validate(); err != nil {
+		log.Printf("CSS validation warning: %v", err)
+	}
+	s.Base["min-height"] = value.String()
+	return s
+}
+
+func (s *Style) MaxHeight(value CSSValue) *Style {
+	if err := value.Validate(); err != nil {
+		log.Printf("CSS validation warning: %v", err)
+	}
+	s.Base["max-height"] = value.String()
+	return s
 }
 
 // Typed Height
