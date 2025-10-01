@@ -2,18 +2,18 @@
 
 // Input component - Stateful
 // Usage :
-// input := component.Input(component.InputTypeText).Placeholder("Enter your name").OnChange(func(event *vdom.InputEvent) {
+// input := component.Input(component.InputTypeText).Placeholder("Enter your name").OnChange(func(event *component.InputEvent) {
 // 	fmt.Println(event.Value())
-// }).OnInput(func(event *vdom.InputEvent) {
+// }).OnInput(func(event *component.InputEvent) {
 // 	fmt.Println(event.Value())
 // })
 
-package component
+package components
 
 import (
 	"strconv"
 
-	"github.com/AureClai/vortex/pkg/vdom"
+	"github.com/AureClai/vortex/core/component"
 )
 
 type InputState struct {
@@ -56,13 +56,13 @@ const (
 )
 
 type InputComponent struct {
-	*vdom.StatefulComponentBase[InputState]
+	*component.StatefulComponentBase[InputState]
 	inputType InputType
 }
 
 // Event handlers types
-type InputChangeHandler func(*vdom.InputEvent)
-type InputInputHandler func(*vdom.InputEvent)
+type InputChangeHandler func(*component.InputEvent)
+type InputInputHandler func(*component.InputEvent)
 
 // Constructor
 func Input(inputType InputType) *InputComponent {
@@ -80,7 +80,7 @@ func Input(inputType InputType) *InputComponent {
 	}
 
 	component := &InputComponent{
-		StatefulComponentBase: vdom.NewStatefulComponent[InputState]("input", initialState),
+		StatefulComponentBase: component.NewStatefulComponent[InputState]("input", initialState),
 		inputType:             inputType,
 	}
 
@@ -88,7 +88,7 @@ func Input(inputType InputType) *InputComponent {
 }
 
 // Render the input component
-func (i *InputComponent) Render() *vdom.VNode {
+func (i *InputComponent) Render() *component.VNode {
 	state := i.GetState()
 
 	props := map[string]interface{}{
@@ -127,10 +127,10 @@ func (i *InputComponent) Render() *vdom.VNode {
 		props["minlength"] = strconv.Itoa(state.MinLength)
 	}
 
-	return &vdom.VNode{
-		Type:  vdom.VNodeElement,
+	return &component.VNode{
+		Type:  component.VNodeElement,
 		Tag:   "input",
-		Props: props,
+		Attrs: props,
 	}
 }
 
@@ -185,8 +185,8 @@ func (i *InputComponent) ID(id string) *InputComponent {
 
 // Event handlers
 func (i *InputComponent) OnChange(handler InputChangeHandler) *InputComponent {
-	i.On("change", func(event vdom.Event) {
-		if inputEvent, ok := event.(*vdom.InputEvent); ok {
+	i.On("change", func(event component.Event) {
+		if inputEvent, ok := event.(*component.InputEvent); ok {
 			// Update internal state
 			i.UpdateState(func(state InputState) InputState {
 				state.Value = inputEvent.Value()
@@ -200,8 +200,8 @@ func (i *InputComponent) OnChange(handler InputChangeHandler) *InputComponent {
 }
 
 func (i *InputComponent) OnInput(handler InputInputHandler) *InputComponent {
-	i.On("input", func(event vdom.Event) {
-		if inputEvent, ok := event.(*vdom.InputEvent); ok {
+	i.On("input", func(event component.Event) {
+		if inputEvent, ok := event.(*component.InputEvent); ok {
 			// Update internal state in real-time
 			i.UpdateState(func(state InputState) InputState {
 				state.Value = inputEvent.Value()

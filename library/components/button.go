@@ -1,9 +1,9 @@
 //go:build js && wasm
 
-package component
+package components
 
 import (
-	"github.com/AureClai/vortex/pkg/vdom"
+	"github.com/AureClai/vortex/core/component"
 )
 
 // =============================================================================
@@ -19,7 +19,7 @@ const (
 )
 
 type ButtonComponent struct {
-	*vdom.FunctionalComponent
+	*component.FunctionalComponent
 	text       string
 	buttonType ButtonType
 }
@@ -30,17 +30,17 @@ func Button(text string) *ButtonComponent {
 		buttonType: ButtonTypeButton,
 	}
 
-	comp.FunctionalComponent = vdom.NewFunctionalComponent(func() *vdom.VNode {
-		return &vdom.VNode{
-			Type: vdom.VNodeElement,
+	comp.FunctionalComponent = component.NewFunctionalComponent(func() *component.VNode {
+		return &component.VNode{
+			Type: component.VNodeElement,
 			Tag:  "button",
-			Children: []*vdom.VNode{
+			Children: []*component.VNode{
 				{
-					Type: vdom.VNodeText,
+					Type: component.VNodeText,
 					Text: comp.text,
 				},
 			},
-			Props: map[string]interface{}{
+			Attrs: map[string]interface{}{
 				"type": string(comp.buttonType),
 			},
 		}
@@ -52,5 +52,12 @@ func Button(text string) *ButtonComponent {
 func (b *ButtonComponent) Type(buttonType ButtonType) *ButtonComponent {
 	b.buttonType = buttonType
 	b.OnUpdate() // Trigger re-render
+	return b
+}
+
+func (b *ButtonComponent) OnClick(handler func(event *component.Event)) *ButtonComponent {
+	b.On("click", func(event component.Event) {
+		handler(&event)
+	})
 	return b
 }

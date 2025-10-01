@@ -1,11 +1,11 @@
 //go:build js && wasm
 
-package component
+package components
 
 import (
 	"strconv"
 
-	"github.com/AureClai/vortex/pkg/vdom"
+	"github.com/AureClai/vortex/core/component"
 )
 
 type TextareaState struct {
@@ -21,7 +21,7 @@ type TextareaState struct {
 }
 
 type TextareaComponent struct {
-	*vdom.StatefulComponentBase[TextareaState]
+	*component.StatefulComponentBase[TextareaState]
 }
 
 func Textarea() *TextareaComponent {
@@ -31,11 +31,11 @@ func Textarea() *TextareaComponent {
 	}
 
 	return &TextareaComponent{
-		StatefulComponentBase: vdom.NewStatefulComponent[TextareaState]("textarea", initialState),
+		StatefulComponentBase: component.NewStatefulComponent[TextareaState]("textarea", initialState),
 	}
 }
 
-func (t *TextareaComponent) Render() *vdom.VNode {
+func (t *TextareaComponent) Render() *component.VNode {
 	state := t.GetState()
 
 	props := map[string]interface{}{}
@@ -59,16 +59,16 @@ func (t *TextareaComponent) Render() *vdom.VNode {
 		props["cols"] = strconv.Itoa(state.Cols)
 	}
 
-	return &vdom.VNode{
-		Type: vdom.VNodeElement,
+	return &component.VNode{
+		Type: component.VNodeElement,
 		Tag:  "textarea",
-		Children: []*vdom.VNode{
+		Children: []*component.VNode{
 			{
-				Type: vdom.VNodeText,
+				Type: component.VNodeText,
 				Text: state.Value, // Textarea content as child text node
 			},
 		},
-		Props: props,
+		Attrs: props,
 	}
 }
 

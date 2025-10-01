@@ -8,12 +8,12 @@ import (
 	"syscall/js"
 	"time"
 
-	"github.com/AureClai/vortex/pkg/vdom"
+	"github.com/AureClai/vortex/core/component"
 )
 
 // Engine manages all animated components using the Graph system
 type Engine struct {
-	graphs      map[*vdom.VNode]*Graph
+	graphs      map[*component.VNode]*Graph
 	isRunning   bool
 	requestID   js.Value
 	frameCount  int64
@@ -22,7 +22,7 @@ type Engine struct {
 
 // GraphBuilder is used to build a new graph (state machine) for a given VNode
 type GraphBuilder struct {
-	componentVNode *vdom.VNode
+	componentVNode *component.VNode
 	graph          *Graph
 }
 
@@ -55,14 +55,14 @@ var globalEngine *Engine
 
 func init() {
 	globalEngine = &Engine{
-		graphs: make(map[*vdom.VNode]*Graph),
+		graphs: make(map[*component.VNode]*Graph),
 	}
 	globalEngine.Start()
 	// fmt.Println("🎬 Animation engine initialized") // Only this one
 }
 
 // Animate creates a new graph (state machine) for a given VNode
-func Animate(component *vdom.VNode) *GraphBuilder {
+func Animate(component *component.VNode) *GraphBuilder {
 	fmt.Println("🎬 Animation.Animate() called for component")
 	return &GraphBuilder{
 		componentVNode: component,

@@ -5,16 +5,16 @@ package app
 import (
 	"syscall/js"
 
-	"github.com/AureClai/vortex/pkg/renderer"
-	"github.com/AureClai/vortex/pkg/vdom"
+	"github.com/AureClai/vortex/core/component"
+	"github.com/AureClai/vortex/core/renderer"
 )
 
 // App is the root application component that manages global state and rendering
 type App[T any] struct {
-	*vdom.StatefulComponentBase[T]
+	*component.StatefulComponentBase[T]
 	renderer    *renderer.Renderer
 	mounted     bool
-	renderFunc  func(T) *vdom.VNode
+	renderFunc  func(T) *component.VNode
 	onMountedFn func()
 }
 
@@ -23,21 +23,18 @@ func New[T any](containerId string, initialState T) *App[T] {
 	r := renderer.NewRenderer(containerId)
 
 	app := &App[T]{
-		StatefulComponentBase: vdom.NewStatefulComponent[T]("div", initialState),
+		StatefulComponentBase: component.NewStatefulComponent[T]("div", initialState),
 		renderer:              r,
 	}
 
-	// Auto re-render on state changes
-	app.SetOnStateChange(func(oldState, newState T) {
-		if app.mounted {
-			app.renderer.Render(app.Render())
-		}
+	component.SetInvalidator(func(c component.Component) {
+		app.renderer.Render(app.Render())
 	})
 
 	return app
 }
 
-func (a *App[T]) SetRender(render func(T) *vdom.VNode) {
+func (a *App[T]) SetRender(render func(T) *component.VNode) {
 	a.renderFunc = render
 }
 
@@ -47,9 +44,9 @@ func (a *App[T]) SetOnMounted(callback func()) {
 }
 
 // Override to use custom render function
-func (a *App[T]) Render() *vdom.VNode {
+func (a *App[T]) Render() *component.VNode {
 	if a.renderFunc != nil {
-		return a.renderFunc(a.GetState())
+		return a.renderFunc(a.StatefulComponentBase.GetState())
 	}
 	return a.StatefulComponentBase.Render()
 }

@@ -5,26 +5,24 @@ package component
 import (
 	"fmt"
 	"strings"
-
-	"github.com/AureClai/vortex/pkg/vdom"
 )
 
 // Text component is a span stateless component
 type TextComponent struct {
-	*vdom.FunctionalComponent
+	*FunctionalComponent
 }
 
 func Text(content string) *TextComponent {
 	return &TextComponent{
-		FunctionalComponent: vdom.NewFunctionalComponent(func() *vdom.VNode {
-			return &vdom.VNode{Type: vdom.VNodeText, Text: content}
+		FunctionalComponent: NewFunctionalComponent(func() *VNode {
+			return &VNode{Type: VNodeText, Text: content}
 		}),
 	}
 }
 
 // Heading component
 type HeadingComponent struct {
-	*vdom.FunctionalComponent
+	*FunctionalComponent
 	level int
 }
 
@@ -34,13 +32,13 @@ func H(content string, level int) *HeadingComponent {
 	}
 
 	return &HeadingComponent{
-		FunctionalComponent: vdom.NewFunctionalComponent(func() *vdom.VNode {
-			return &vdom.VNode{
-				Type: vdom.VNodeElement,
+		FunctionalComponent: NewFunctionalComponent(func() *VNode {
+			return &VNode{
+				Type: VNodeElement,
 				Tag:  fmt.Sprintf("h%d", level),
-				Children: []*vdom.VNode{
+				Children: []*VNode{
 					{
-						Type: vdom.VNodeText,
+						Type: VNodeText,
 						Text: content,
 					},
 				},
@@ -52,18 +50,18 @@ func H(content string, level int) *HeadingComponent {
 
 // Paragraph component
 type ParagraphComponent struct {
-	*vdom.FunctionalComponent
+	*FunctionalComponent
 }
 
-func P(content ...vdom.Component) *ParagraphComponent {
-	childrenVNodes := make([]*vdom.VNode, len(content))
+func P(content ...Component) *ParagraphComponent {
+	childrenVNodes := make([]*VNode, len(content))
 	for i, child := range content {
 		childrenVNodes[i] = child.Render()
 	}
 	return &ParagraphComponent{
-		FunctionalComponent: vdom.NewFunctionalComponent(func() *vdom.VNode {
-			return &vdom.VNode{
-				Type:     vdom.VNodeElement,
+		FunctionalComponent: NewFunctionalComponent(func() *VNode {
+			return &VNode{
+				Type:     VNodeElement,
 				Tag:      "p",
 				Children: childrenVNodes,
 			}
@@ -73,16 +71,16 @@ func P(content ...vdom.Component) *ParagraphComponent {
 
 // Markdown engine
 type MarkdownComponent struct {
-	*vdom.FunctionalComponent
+	*FunctionalComponent
 }
 
 // Usage :
 // markdown := component.Markdown("**bold** *italic* # Heading 1")
 func Markdown(content string) *MarkdownComponent {
 	return &MarkdownComponent{
-		FunctionalComponent: vdom.NewFunctionalComponent(func() *vdom.VNode {
-			return &vdom.VNode{
-				Type:     vdom.VNodeElement,
+		FunctionalComponent: NewFunctionalComponent(func() *VNode {
+			return &VNode{
+				Type:     VNodeElement,
 				Tag:      "div",
 				Children: parseMarkdown(content),
 			}
@@ -91,15 +89,15 @@ func Markdown(content string) *MarkdownComponent {
 }
 
 // Actual markdown parser (basic implementation)
-func parseMarkdown(content string) []*vdom.VNode {
+func parseMarkdown(content string) []*VNode {
 	content = strings.TrimSpace(content)
 	if content == "" {
-		return []*vdom.VNode{}
+		return []*VNode{}
 	}
 
 	// Split into paragraphs (double newlines)
 	paragraphs := strings.Split(content, "\n\n")
-	nodes := make([]*vdom.VNode, 0, len(paragraphs))
+	nodes := make([]*VNode, 0, len(paragraphs))
 
 	for _, paragraph := range paragraphs {
 		paragraph = strings.TrimSpace(paragraph)
@@ -116,7 +114,7 @@ func parseMarkdown(content string) []*vdom.VNode {
 	return nodes
 }
 
-func parseMarkdownBlock(text string) *vdom.VNode {
+func parseMarkdownBlock(text string) *VNode {
 	text = strings.TrimSpace(text)
 
 	// Headers: # H1, ## H2, ### H3, etc.
@@ -125,14 +123,14 @@ func parseMarkdownBlock(text string) *vdom.VNode {
 	}
 
 	// Regular paragraph with inline formatting
-	return &vdom.VNode{
-		Type:     vdom.VNodeElement,
+	return &VNode{
+		Type:     VNodeElement,
 		Tag:      "p",
 		Children: parseInlineMarkdown(text),
 	}
 }
 
-func parseHeader(text string) *vdom.VNode {
+func parseHeader(text string) *VNode {
 	level := 0
 	for i, char := range text {
 		if char == '#' {
@@ -150,20 +148,20 @@ func parseHeader(text string) *vdom.VNode {
 		level = 1
 	}
 
-	return &vdom.VNode{
-		Type:     vdom.VNodeElement,
+	return &VNode{
+		Type:     VNodeElement,
 		Tag:      fmt.Sprintf("h%d", level),
 		Children: parseInlineMarkdown(text),
 	}
 }
 
-func parseInlineMarkdown(text string) []*vdom.VNode {
+func parseInlineMarkdown(text string) []*VNode {
 	if text == "" {
-		return []*vdom.VNode{}
+		return []*VNode{}
 	}
 
 	// Simple regex-based parsing for **bold** and *italic*
-	result := []*vdom.VNode{}
+	result := []*VNode{}
 	remaining := text
 
 	for remaining != "" {
@@ -174,8 +172,8 @@ func parseInlineMarkdown(text string) []*vdom.VNode {
 		// No more markdown - add remaining as text
 		if boldStart == -1 && italicStart == -1 {
 			if remaining != "" {
-				result = append(result, &vdom.VNode{
-					Type: vdom.VNodeText,
+				result = append(result, &VNode{
+					Type: VNodeText,
 					Text: remaining,
 				})
 			}
@@ -186,8 +184,8 @@ func parseInlineMarkdown(text string) []*vdom.VNode {
 		if boldStart != -1 && (italicStart == -1 || boldStart < italicStart) {
 			// Add text before bold
 			if boldStart > 0 {
-				result = append(result, &vdom.VNode{
-					Type: vdom.VNodeText,
+				result = append(result, &VNode{
+					Type: VNodeText,
 					Text: remaining[:boldStart],
 				})
 			}
@@ -196,12 +194,12 @@ func parseInlineMarkdown(text string) []*vdom.VNode {
 			boldEnd := strings.Index(remaining[boldStart+2:], "**")
 			if boldEnd != -1 {
 				boldText := remaining[boldStart+2 : boldStart+2+boldEnd]
-				result = append(result, &vdom.VNode{
-					Type: vdom.VNodeElement,
+				result = append(result, &VNode{
+					Type: VNodeElement,
 					Tag:  "strong",
-					Children: []*vdom.VNode{
+					Children: []*VNode{
 						{
-							Type: vdom.VNodeText,
+							Type: VNodeText,
 							Text: boldText,
 						},
 					},
@@ -209,8 +207,8 @@ func parseInlineMarkdown(text string) []*vdom.VNode {
 				remaining = remaining[boldStart+2+boldEnd+2:]
 			} else {
 				// No closing **, treat as regular text
-				result = append(result, &vdom.VNode{
-					Type: vdom.VNodeText,
+				result = append(result, &VNode{
+					Type: VNodeText,
 					Text: remaining[:boldStart+2],
 				})
 				remaining = remaining[boldStart+2:]
@@ -222,8 +220,8 @@ func parseInlineMarkdown(text string) []*vdom.VNode {
 		if italicStart != -1 {
 			// Add text before italic
 			if italicStart > 0 {
-				result = append(result, &vdom.VNode{
-					Type: vdom.VNodeText,
+				result = append(result, &VNode{
+					Type: VNodeText,
 					Text: remaining[:italicStart],
 				})
 			}
@@ -232,12 +230,12 @@ func parseInlineMarkdown(text string) []*vdom.VNode {
 			italicEnd := strings.Index(remaining[italicStart+1:], "*")
 			if italicEnd != -1 {
 				italicText := remaining[italicStart+1 : italicStart+1+italicEnd]
-				result = append(result, &vdom.VNode{
-					Type: vdom.VNodeElement,
+				result = append(result, &VNode{
+					Type: VNodeElement,
 					Tag:  "em",
-					Children: []*vdom.VNode{
+					Children: []*VNode{
 						{
-							Type: vdom.VNodeText,
+							Type: VNodeText,
 							Text: italicText,
 						},
 					},
@@ -245,8 +243,8 @@ func parseInlineMarkdown(text string) []*vdom.VNode {
 				remaining = remaining[italicStart+1+italicEnd+1:]
 			} else {
 				// No closing *, treat as regular text
-				result = append(result, &vdom.VNode{
-					Type: vdom.VNodeText,
+				result = append(result, &VNode{
+					Type: VNodeText,
 					Text: remaining[:italicStart+1],
 				})
 				remaining = remaining[italicStart+1:]

@@ -1,13 +1,13 @@
 //go:build js && wasm
 
-package component
+package components
 
 import (
-	"github.com/AureClai/vortex/pkg/vdom"
+	"github.com/AureClai/vortex/core/component"
 )
 
 type OptionComponent struct {
-	*vdom.FunctionalComponent
+	*component.FunctionalComponent
 	value    string
 	text     string
 	selected bool
@@ -20,7 +20,7 @@ func Option(value, text string) *OptionComponent {
 		text:  text,
 	}
 
-	comp.FunctionalComponent = vdom.NewFunctionalComponent(func() *vdom.VNode {
+	comp.FunctionalComponent = component.NewFunctionalComponent(func() *component.VNode {
 		props := map[string]interface{}{
 			"value": comp.value,
 		}
@@ -31,16 +31,16 @@ func Option(value, text string) *OptionComponent {
 			props["disabled"] = true
 		}
 
-		return &vdom.VNode{
-			Type: vdom.VNodeElement,
+		return &component.VNode{
+			Type: component.VNodeElement,
 			Tag:  "option",
-			Children: []*vdom.VNode{
+			Children: []*component.VNode{
 				{
-					Type: vdom.VNodeText,
+					Type: component.VNodeText,
 					Text: comp.text,
 				},
 			},
-			Props: props,
+			Attrs: props,
 		}
 	})
 

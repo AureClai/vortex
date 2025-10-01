@@ -1,11 +1,11 @@
 //go:build js && wasm
 
-package component
+package components
 
 import (
 	"strconv"
 
-	"github.com/AureClai/vortex/pkg/vdom"
+	"github.com/AureClai/vortex/core/component"
 )
 
 // =============================================================================
@@ -21,18 +21,18 @@ type SelectState struct {
 }
 
 type SelectComponent struct {
-	*vdom.StatefulComponentBase[SelectState]
+	*component.StatefulComponentBase[SelectState]
 	options []OptionComponent
 }
 
 func Select() *SelectComponent {
 	return &SelectComponent{
-		StatefulComponentBase: vdom.NewStatefulComponent[SelectState]("select", SelectState{}),
+		StatefulComponentBase: component.NewStatefulComponent[SelectState]("select", SelectState{}),
 		options:               make([]OptionComponent, 0),
 	}
 }
 
-func (s *SelectComponent) Render() *vdom.VNode {
+func (s *SelectComponent) Render() *component.VNode {
 	state := s.GetState()
 
 	props := map[string]interface{}{}
@@ -50,15 +50,15 @@ func (s *SelectComponent) Render() *vdom.VNode {
 	}
 
 	// Convert options to VNodes
-	children := make([]*vdom.VNode, len(s.options))
+	children := make([]*component.VNode, len(s.options))
 	for i, option := range s.options {
 		children[i] = option.Render()
 	}
 
-	return &vdom.VNode{
-		Type:     vdom.VNodeElement,
+	return &component.VNode{
+		Type:     component.VNodeElement,
 		Tag:      "select",
-		Props:    props,
+		Attrs:    props,
 		Children: children,
 	}
 }

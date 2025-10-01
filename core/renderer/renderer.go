@@ -7,16 +7,22 @@ import (
 	"strings"
 	"syscall/js"
 
-	"github.com/AureClai/vortex/pkg/vdom"
+	"github.com/AureClai/vortex/core/component"
 )
 
 type Renderer struct {
-	container    js.Value    // Container element
-	currentVNode *vdom.VNode // Current virtual node state for patching algorithms
+	container    js.Value         // Container element
+	currentVNode *component.VNode // Current virtual node state for patching algorithms
 
 	styleElement    js.Value        // Ref to the <style> balise
 	injectedClasses map[string]bool // Keep track from the classes already injected
 	animationFrame  js.Value
+
+	// incremental rendering
+	dirtySet     map[component.Component]struct{}
+	rafScheduled bool
+	// index of component -> vnode for current tree
+	compIndex map[component.Component]*component.VNode
 }
 
 func NewRenderer(containerID string) *Renderer {
@@ -35,16 +41,145 @@ func NewRenderer(containerID string) *Renderer {
 
 		styleElement:    styleEl,
 		injectedClasses: make(map[string]bool),
+		dirtySet:        make(map[component.Component]struct{}),
+		compIndex:       make(map[component.Component]*component.VNode),
 	}
 }
 
-func (r *Renderer) Render(newVNode *vdom.VNode) {
-	// Clear container and render new tree
-	r.Patch(r.container, r.currentVNode, newVNode)
-	r.currentVNode = newVNode
+func (r *Renderer) Render(newVNode *component.VNode) {
+	expanded := r.resolveComponents(newVNode) // return pure elements
+	r.buildComponentIndex(expanded)
+	r.Patch(r.container, r.currentVNode, expanded)
+	r.currentVNode = expanded
 }
 
-func logPatch(parent js.Value, currentVNode *vdom.VNode, newVNode *vdom.VNode) {
+func (r *Renderer) Invalidate(comp component.Component) {
+	r.dirtySet[comp] = struct{}{}
+	if !r.rafScheduled {
+		r.rafScheduled = true
+		js.Global().Get("window").Call("requestAnimationFrame", js.FuncOf(func(this js.Value, args []js.Value) interface{} {
+			r.rafScheduled = false
+			r.flushDirty()
+			return nil
+		}))
+	}
+}
+
+func (r *Renderer) flushDirty() {
+	// 1) Collapse dirty set: if an ancestor comp is dirty, drop its descendants
+	roots := r.filterDirtyRoots()
+
+	// 2) For eash dirty root component : re-render its subtree and patch at boundary
+	for comp := range roots {
+		oldSub := r.compIndex[comp]
+		if oldSub == nil || !oldSub.Element.Truthy() {
+			continue
+		}
+		parent := oldSub.Element.Get("parentNode")
+		newSub := r.resolveComponents(comp.Render())
+		// Patch subtree
+		r.Patch(parent, oldSub, newSub)
+		// replace in current tree and reindex this branch
+		r.replaceSubtree(r.currentVNode, oldSub, newSub)
+		r.reindexComponentBranch(newSub)
+	}
+
+	// clear set
+	for k := range r.dirtySet {
+		delete(r.dirtySet, k)
+	}
+}
+
+// resolveComponents expands VNodeComponent nodes into element/text trees,
+// preserving EventHandlers/Attrs/etc. It also attaches Component reference to
+// the expanded subtree root for indexing.
+func (r *Renderer) resolveComponents(v *component.VNode) *component.VNode {
+	if v == nil {
+		return nil
+	}
+	if v.Type == component.VNodeComponent && v.Component != nil {
+		expanded := v.Component.Render()
+		res := r.resolveComponents(expanded)
+		// Tag the root with the component (for indexing boundary)
+		if res != nil {
+			res.Component = v.Component
+		}
+		return res
+	}
+	// clone node shallowly, resolve children
+	out := *v
+	out.Children = make([]*component.VNode, len(v.Children))
+	for _, ch := range v.Children {
+		out.Children = append(out.Children, r.resolveComponents(ch))
+	}
+	return &out
+}
+
+// buildComponentIndex builds the index of components in the tree
+func (r *Renderer) buildComponentIndex(v *component.VNode) {
+	r.compIndex = make(map[component.Component]*component.VNode)
+	var walk func(*component.VNode)
+	walk = func(v *component.VNode) {
+		if v == nil {
+			return
+		}
+		if v.Component != nil {
+			r.compIndex[v.Component] = v
+		}
+		for _, ch := range v.Children {
+			walk(ch)
+		}
+	}
+	walk(v)
+}
+
+// reindexComponentBranch reindexes the component branch
+func (r *Renderer) reindexComponentBranch(v *component.VNode) {
+	var walk func(*component.VNode)
+	walk = func(v *component.VNode) {
+		if v == nil {
+			return
+		}
+		if v.Component != nil {
+			r.compIndex[v.Component] = v
+		}
+		for _, ch := range v.Children {
+			walk(ch)
+		}
+	}
+	walk(v)
+}
+
+// replaceSubtree replaces the subtree with the new subtree
+func (r *Renderer) replaceSubtree(root *component.VNode, oldSub *component.VNode, newSub *component.VNode) bool {
+	if root == nil {
+		return false
+	}
+	for i, ch := range root.Children {
+		if ch == oldSub {
+			root.Children[i] = newSub
+			return true
+		}
+		if r.replaceSubtree(ch, oldSub, newSub) {
+			return true
+		}
+	}
+	return false
+}
+
+// filterDirtyRoots filters the dirty roots
+func (r *Renderer) filterDirtyRoots() map[component.Component]struct{} {
+	// Simple version : no explicit parent links; trat all as roots.
+	// It the component always use AddChildComponent and we index all boundaries,
+	// we can detect ancestors by waking up via compIndex-reverse map if added.
+	out := make(map[component.Component]struct{}, len(r.dirtySet))
+	for c := range r.dirtySet {
+		out[c] = struct{}{}
+	}
+	return out
+}
+
+func logPatch(parent js.Value, currentVNode *component.VNode, newVNode *component.VNode) {
 	fmt.Printf("\n\n")
 	fmt.Printf("Patching DOM from %p to %p\n", currentVNode, newVNode)
 	fmt.Printf("Parent: %+v\n", parent.Get("tagName").String())
@@ -56,8 +191,9 @@ func logPatch(parent js.Value, currentVNode *vdom.VNode, newVNode *vdom.VNode) {
 // This is the main algorithm for the virtual DOM diffing
 // Here remain most of the efficiciency for the virtual DOM
 // TODO: Implement a better algorithm for keyed lists
-func (r *Renderer) Patch(parent js.Value, currentVNode *vdom.VNode, newVNode *vdom.VNode) {
+func (r *Renderer) Patch(parent js.Value, currentVNode *component.VNode, newVNode *component.VNode) {
 	//logPatch(parent, currentVNode, newVNode)
+
 	// Cas 1: Création
 	if currentVNode == nil && newVNode != nil {
 		domNode := r.createDomNode(newVNode)
@@ -71,7 +207,12 @@ func (r *Renderer) Patch(parent js.Value, currentVNode *vdom.VNode, newVNode *vd
 		return
 	}
 
-	// Cas 3: Remplacement
+	// Cas 3: Both nil - nothing to do
+	if currentVNode == nil && newVNode == nil {
+		return
+	}
+
+	// Cas 4: Remplacement
 	if currentVNode.Tag != newVNode.Tag || currentVNode.Type != newVNode.Type {
 		newDomNode := r.createDomNode(newVNode)
 		parent.Call("replaceChild", newDomNode, currentVNode.Element)
@@ -84,7 +225,7 @@ func (r *Renderer) Patch(parent js.Value, currentVNode *vdom.VNode, newVNode *vd
 	newVNode.Element = currentVNode.Element
 
 	// Mise à jour d'un nœud texte
-	if newVNode.Type == vdom.VNodeText {
+	if newVNode.Type == component.VNodeText {
 		if currentVNode.Text != newVNode.Text {
 			newVNode.Element.Set("textContent", newVNode.Text)
 		}
@@ -96,7 +237,7 @@ func (r *Renderer) Patch(parent js.Value, currentVNode *vdom.VNode, newVNode *vd
 	}
 }
 
-func (r *Renderer) updateStyle(oldVNode, newVNode *vdom.VNode) {
+func (r *Renderer) updateStyle(oldVNode, newVNode *component.VNode) {
 	oldStyle := oldVNode.AppliedStyle
 	newStyle := newVNode.AppliedStyle
 	element := newVNode.Element
@@ -141,9 +282,9 @@ func (r *Renderer) updateStyle(oldVNode, newVNode *vdom.VNode) {
 
 // updateProps gère la mise à jour des attributs HTML d'un élément.
 // Il ne gère PAS le style, qui est traité séparément.
-func (r *Renderer) updateProps(oldVNode, newVNode *vdom.VNode) {
-	oldProps := oldVNode.Props
-	newProps := newVNode.Props
+func (r *Renderer) updateProps(oldVNode, newVNode *component.VNode) {
+	oldProps := oldVNode.Attrs
+	newProps := newVNode.Attrs
 	element := newVNode.Element // On utilise la référence du nouveau VNode
 
 	// 1. Supprimer les anciennes propriétés qui n'existent plus dans les nouvelles.
@@ -168,7 +309,7 @@ func (r *Renderer) updateProps(oldVNode, newVNode *vdom.VNode) {
 }
 
 // patchChildren gère la réconciliation des enfants d'un élément en se basant sur leur index.
-func (r *Renderer) patchChildren(oldVNode, newVNode *vdom.VNode) {
+func (r *Renderer) patchChildren(oldVNode, newVNode *component.VNode) {
 	oldChildren := oldVNode.Children
 	newChildren := newVNode.Children
 	parent := newVNode.Element
@@ -181,7 +322,7 @@ func (r *Renderer) patchChildren(oldVNode, newVNode *vdom.VNode) {
 
 	// Parcourir et "patcher" chaque enfant.
 	for i := 0; i < maxLen; i++ {
-		var oldChild, newChild *vdom.VNode
+		var oldChild, newChild *component.VNode
 
 		// Obtenir l'ancien enfant s'il existe à cet index.
 		if i < len(oldChildren) {
@@ -201,7 +342,7 @@ func (r *Renderer) patchChildren(oldVNode, newVNode *vdom.VNode) {
 	}
 }
 
-func (r *Renderer) createDomNode(vnode *vdom.VNode) js.Value {
+func (r *Renderer) createDomNode(vnode *component.VNode) js.Value {
 	if vnode == nil {
 		return js.Null()
 	}
@@ -209,17 +350,17 @@ func (r *Renderer) createDomNode(vnode *vdom.VNode) js.Value {
 	document := js.Global().Get("document")
 
 	switch vnode.Type {
-	case vdom.VNodeText:
+	case component.VNodeText:
 		textNode := document.Call("createTextNode", vnode.Text)
 		vnode.Element = textNode
 		return textNode
 
-	case vdom.VNodeElement:
+	case component.VNodeElement:
 		element := document.Call("createElement", vnode.Tag)
 		vnode.Element = element
 
 		// Set properties
-		for key, value := range vnode.Props {
+		for key, value := range vnode.Attrs {
 			if key == "style" {
 				// Handle inline styles
 				element.Get("style").Set("cssText", value)
@@ -254,8 +395,8 @@ func (r *Renderer) createDomNode(vnode *vdom.VNode) js.Value {
 }
 
 // processStyle inject the styles
-func (r *Renderer) processStyle(vnode *vdom.VNode) {
-	if vnode.Type != vdom.VNodeElement {
+func (r *Renderer) processStyle(vnode *component.VNode) {
+	if vnode.Type != component.VNodeElement {
 		fmt.Printf("WARNING: processStyle called on a non-element vnode %v\n", vnode.Type)
 	}
 

@@ -2,7 +2,7 @@
 
 // Event is a struct that contains the event data
 
-package vdom
+package component
 
 import (
 	"strconv"
